@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Layout from '../components/Layout';
+import MapView from '../components/MapView';
 import { Search as SearchIcon, Filter, ChevronDown, Star, Heart, Clock, Info, Check, Plus, Minus } from 'lucide-react';
 
 const Search = () => {
@@ -166,6 +167,22 @@ const Search = () => {
                 <span className="hidden sm:inline">Recommended</span>
                 <ChevronDown size={16} />
               </button>
+            </div>
+
+            {/* Map Section */}
+            <div className="bg-white p-4 rounded-[24px] border border-slate-100 shadow-sm">
+              <h3 className="font-bold text-slate-900 mb-3">Activity Locations</h3>
+              <MapView
+                center={[48.8566, 2.3522]} // Paris coordinates
+                zoom={12}
+                height="300px"
+                markers={[
+                  { position: [48.8606, 2.3376], title: 'Louvre Museum', description: '$45 - 3 Hours' },
+                  { position: [48.8584, 2.2945], title: 'Eiffel Tower', description: '$62 - 2.5 Hours' },
+                  { position: [48.8566, 2.3522], title: 'Seine River Cruise', description: '$25 - 1 Hour' },
+                  { position: [48.8867, 2.3431], title: 'Montmartre', description: '$85 - 2 Hours' },
+                ]}
+              />
             </div>
 
             <div className="text-sm font-medium text-slate-500 px-1">

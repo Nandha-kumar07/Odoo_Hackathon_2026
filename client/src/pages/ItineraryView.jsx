@@ -1,5 +1,6 @@
 import React from 'react';
 import Layout from '../components/Layout';
+import MapView from '../components/MapView';
 import {
   Share2, Download, Calendar, List, MapPin, Bike,
   Banknote, Plus, FileText, Edit3, ChevronRight, Activity, PersonStanding
@@ -181,14 +182,21 @@ const ItineraryView = () => {
           <div className="space-y-6">
             {/* Map Card */}
             <div className="bg-white p-3 rounded-[24px] border border-slate-100 shadow-sm">
-              <div className="h-48 rounded-xl bg-slate-200 overflow-hidden relative">
-                <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover opacity-80" alt="Map" />
-                <div className="absolute inset-x-4 bottom-4 bg-white/90 backdrop-blur-md p-3 rounded-xl">
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current Location</div>
-                  <div className="flex items-center gap-1 font-bold text-slate-900">
-                    <MapPin size={16} className="text-blue-600" />
-                    London, UK
-                  </div>
+              <MapView
+                center={[51.5074, -0.1278]} // London coordinates
+                zoom={12}
+                height="240px"
+                markers={[
+                  { position: [51.5074, -0.1278], title: 'London, UK', description: 'Current trip location' },
+                  { position: [51.5014, -0.1419], title: 'Buckingham Palace', description: 'Day 1 - Morning' },
+                  { position: [51.5194, -0.1270], title: 'British Museum', description: 'Day 1 - Afternoon' },
+                ]}
+              />
+              <div className="mt-3 px-3">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current Location</div>
+                <div className="flex items-center gap-1 font-bold text-slate-900">
+                  <MapPin size={16} className="text-blue-600" />
+                  London, UK
                 </div>
               </div>
             </div>

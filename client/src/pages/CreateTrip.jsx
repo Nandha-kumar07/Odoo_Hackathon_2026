@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import MapView from '../components/MapView';
 import { Calendar, MapPin, Sparkles, Plus, Image as ImageIcon } from 'lucide-react';
 
 const CreateTrip = () => {
@@ -97,6 +98,23 @@ const CreateTrip = () => {
           {/* Card 2: Suggestions */}
           <div className="bg-white p-8 rounded-[24px] border border-slate-100 shadow-sm">
             <label className="block text-lg font-bold text-slate-900 mb-6">Suggestion for Places to Visit/Activities to prefer</label>
+
+            {/* World Map */}
+            <div className="mb-8">
+              <MapView
+                center={[30, 0]} // World view
+                zoom={2}
+                height="350px"
+                markers={[
+                  { position: [35.0116, 135.7681], title: 'Kyoto, Japan', description: 'Cultural Heritage' },
+                  { position: [36.3932, 25.4615], title: 'Santorini, Greece', description: 'Island Paradise' },
+                  { position: [20.7984, -156.3319], title: 'Maui, Hawaii', description: 'Beach Destination' },
+                  { position: [31.6295, -7.9811], title: 'Marrakech, Morocco', description: 'Exotic Adventure' },
+                  { position: [51.1784, -115.5708], title: 'Banff, Canada', description: 'Mountain Escape' },
+                  { position: [40.7128, -74.0060], title: 'New York, USA', description: 'Urban Experience' },
+                ]}
+              />
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {suggestions.map((place) => (
