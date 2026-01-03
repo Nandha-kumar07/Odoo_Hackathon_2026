@@ -1,7 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import './styles/design-system.css';
-import './App.css';
 
 // Import Pages
 import Login from './pages/Login';
