@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { Plus, Calendar, MapPin, Users, MoreVertical, ArrowRight, Clock, CheckCircle } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, MoreVertical, ArrowRight, Clock, CheckCircle, Trash2 } from 'lucide-react';
 import { tripService } from '../services/trips';
 
 const TripListing = () => {
@@ -22,6 +22,19 @@ const TripListing = () => {
     };
     fetchTrips();
   }, []);
+
+  const handleDeleteTrip = async (id, e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
+      try {
+        await tripService.deleteTrip(id);
+        setTrips(trips.filter(t => t.id !== id));
+      } catch (error) {
+        console.error('Failed to delete trip:', error);
+        alert('Failed to delete trip. Please try again.');
+      }
+    }
+  };
 
   const ongoingTrips = trips.filter(t => t.status === 'ongoing');
   const upcomingTrips = trips.filter(t => t.status === 'planning');
@@ -82,9 +95,14 @@ const TripListing = () => {
                     <div>
                       <div className="flex justify-between items-start mb-4">
                         <h3 className="text-2xl font-black text-slate-900">{trip.name}</h3>
-                        <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
-                          <MoreVertical size={20} />
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => handleDeleteTrip(trip.id, e)}
+                            className="p-2 hover:bg-red-50 rounded-full text-slate-300 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                        </div>
                       </div>
                       <p className="text-slate-500 mb-6 line-clamp-2">Enjoying the adventure in {trip.destination}!</p>
 
@@ -138,8 +156,13 @@ const TripListing = () => {
                         <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-md">
                           <img src={trip.image_url || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"} alt={trip.name} className="w-full h-full object-cover" />
                         </div>
-                        <div className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold uppercase tracking-wider rounded-lg">
-                          {Math.ceil((new Date(trip.start_date) - new Date()) / (1000 * 60 * 60 * 24))} days left
+                        <div className="flex gap-1">
+                          <button
+                            onClick={(e) => handleDeleteTrip(trip.id, e)}
+                            className="p-2 hover:bg-red-50 rounded-full text-slate-300 hover:text-red-500 transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
                         </div>
                       </div>
 

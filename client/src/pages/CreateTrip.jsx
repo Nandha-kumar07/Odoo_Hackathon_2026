@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import MapView from '../components/MapView';
-import { Calendar, MapPin, Sparkles, Plus, Image as ImageIcon, Wallet } from 'lucide-react';
+import { Calendar, MapPin, Sparkles, Plus, Image as ImageIcon, Wallet, PersonStanding } from 'lucide-react';
 import { tripService } from '../services/trips';
 
 const CreateTrip = () => {
@@ -44,11 +44,11 @@ const CreateTrip = () => {
     try {
       const newTrip = await tripService.createTrip({
         name: tripName,
-        destination: `${selectedDest.name}, ${selectedDest.country}`,
+        destination: typeof selectedDest === 'string' ? selectedDest : `${selectedDest.name}, ${selectedDest.country}`,
         start_date: dates.start,
         end_date: dates.end,
         budget: parseFloat(budget) || 0,
-        image_url: selectedDest.image,
+        image_url: selectedDest.image || "https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=1000&auto=format&fit=crop",
         traveler_type: travelerType
       });
 
@@ -103,11 +103,10 @@ const CreateTrip = () => {
                     <MapPin size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
-                      value={selectedDest ? `${selectedDest.name}, ${selectedDest.country}` : ''}
-                      onChange={() => { }}
-                      placeholder="Select from suggestions below..."
-                      readOnly
-                      className="w-full h-14 pl-12 pr-5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400 cursor-pointer"
+                      value={selectedDest ? (typeof selectedDest === 'string' ? selectedDest : `${selectedDest.name}, ${selectedDest.country}`) : ''}
+                      onChange={(e) => setSelectedDest(e.target.value)}
+                      placeholder="Select from suggestions or type any location..."
+                      className="w-full h-14 pl-12 pr-5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
                       required
                     />
                   </div>

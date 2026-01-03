@@ -147,8 +147,31 @@ router.post('/itinerary/generate/:tripId', auth, async (req, res) => {
                     { time: '10:00', title: 'Kyoto Railway Museum', desc: 'Fun for kids and adults.', type: 'sightseeing', loc: 'Kyoto Railway Museum' },
                     { time: '14:00', title: 'Maruyama Park Picnic', desc: 'Space for kids to run around.', type: 'leisure', loc: 'Maruyama Park' }
                 ]
+            },
+            'Kerala': {
+                'Solo': [
+                    { time: '09:00', title: 'Munnar Tea Garden Trek', desc: 'Serene walk through tea estates.', type: 'adventure', loc: 'Munnar' },
+                    { time: '13:00', title: 'Authentic Sadhya Lunch', desc: 'Traditional Kerala meal on a leaf.', type: 'food', loc: 'Local Restaurant, Munnar' }
+                ],
+                'Couple': [
+                    { time: '16:00', title: 'Alleppey Houseboat Cruise', desc: 'Romantic stay on the backwaters.', type: 'romance', loc: 'Alleppey' },
+                    { time: '19:00', title: 'Candlelight Seafood Dinner', desc: 'Fresh catch by the backwaters.', type: 'food', loc: 'Backwaters, Alleppey' }
+                ],
+                'Family': [
+                    { time: '10:00', title: 'Periyar Wildlife Sanctuary', desc: 'Boat safari to spot elephants.', type: 'sightseeing', loc: 'Thekkady' },
+                    { time: '16:00', title: 'Kathakali Performance', desc: 'Traditional dance and drama.', type: 'culture', loc: 'Thekkady' }
+                ]
+            },
+            'Tamil Nadu': {
+                'Solo': [
+                    { time: '06:00', title: 'Madurai Meenakshi Sunrise', desc: 'Witness the morning rituals.', type: 'culture', loc: 'Meenakshi Amman Temple' },
+                    { time: '10:00', title: 'Street Food Tour', desc: 'Famous Madurai Jigarthanda and IDly.', type: 'food', loc: 'Madurai City' }
+                ],
+                'Family': [
+                    { time: '10:00', title: 'Mahabalipuram Shore Temple', desc: 'UNESCO heritage site by the sea.', type: 'sightseeing', loc: 'Mahabalipuram' },
+                    { time: '16:00', title: 'Beach Fun at Marina', desc: 'Worlds second longest beach.', type: 'leisure', loc: 'Marina Beach, Chennai' }
+                ]
             }
-            // Add more as needed or use a generic generator below
         };
 
         const duration = Math.ceil((new Date(trip.end_date) - new Date(trip.start_date)) / (86400000)) + 1;
@@ -173,13 +196,30 @@ router.post('/itinerary/generate/:tripId', auth, async (req, res) => {
                     [tripId, activity.title, activity.desc, dayDate, activity.time, activity.loc, activity.type, true]
                 );
             } else {
-                // Generic suggested activities if no specific knowledge
-                const genericTitle = i % 2 === 0 ? `Must-visit Landmark in ${dest}` : `Local Food Experience in ${dest}`;
-                const genericType = i % 2 === 0 ? 'sightseeing' : 'food';
-                const genericLoc = `${dest} City Center`;
+                // Generic smarter suggestions
+                const genericThemes = {
+                    'Solo': [
+                        { time: '09:00', title: `Hidden Gems of ${dest}`, desc: 'Offbeat exploration for solo travelers.', type: 'adventure', loc: `${dest} Center` },
+                        { time: '12:30', title: 'Local Cafe Brunch', desc: 'Relax and soak in the atmosphere.', type: 'food', loc: `${dest} Town` }
+                    ],
+                    'Couple': [
+                        { time: '11:00', title: `Romantic Viewpoint in ${dest}`, desc: 'Beautiful vistas for two.', type: 'sightseeing', loc: `${dest} Heights` },
+                        { time: '19:00', title: 'Fine Dining Experience', desc: 'Taste the best local cuisine.', type: 'food', loc: `${dest} Plaza` }
+                    ],
+                    'Family': [
+                        { time: '10:00', title: `Outdoor Activity in ${dest}`, desc: 'Fun and engaging for all ages.', type: 'leisure', loc: `${dest} Park` },
+                        { time: '13:00', title: 'Family-style Lunch', desc: 'A variety of local flavors.', type: 'food', loc: `${dest} Market` }
+                    ],
+                    'Friends': [
+                        { time: '14:00', title: `Group Activity at ${dest}`, desc: 'Active and social exploration.', type: 'adventure', loc: `${dest} District` },
+                        { time: '20:00', title: 'Vibrant Local Eatery', desc: 'Lively atmosphere and good food.', type: 'food', loc: `${dest} Strip` }
+                    ]
+                };
+
+                const theme = genericThemes[type][(i - 1) % 2];
                 await pool.query(
                     'INSERT INTO activities (trip_id, title, description, activity_date, activity_time, location, activity_type, is_added) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-                    [tripId, genericTitle, `Automatic suggestion for ${type} travelers in ${dest}.`, dayDate, '10:00', genericLoc, genericType, true]
+                    [tripId, theme.title, theme.desc, dayDate, theme.time, theme.loc, theme.type, true]
                 );
             }
         }
