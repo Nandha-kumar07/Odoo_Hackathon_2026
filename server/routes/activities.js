@@ -3,6 +3,20 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
+// Get all activities for the authenticated user (across all trips)
+router.get('/', auth, async (req, res) => {
+    try {
+        const result = await pool.query(
+            'SELECT a.*, t.name as trip_name FROM activities a JOIN trips t ON a.trip_id = t.id WHERE t.user_id = $1 ORDER BY activity_date, activity_time',
+            [req.user.id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
+
 // Get all activities for a trip
 router.get('/trips/:tripId/activities', auth, async (req, res) => {
     try {

@@ -25,6 +25,8 @@ app.use("/api/trips", require("./routes/trips"));
 app.use("/api", require("./routes/activities")); // Note: activities route handles /trips/:id/activities and /activities/:id
 app.use("/api", require("./routes/itinerary")); // Note: itinerary route handles /trips/:id/itinerary and /itinerary/:id
 app.use("/api/expenses", require("./routes/expenses"));
+app.use("/api/search", require("./routes/search"));
+app.use("/api/admin", require("./routes/admin"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

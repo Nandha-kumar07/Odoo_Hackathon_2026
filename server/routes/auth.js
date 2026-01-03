@@ -132,4 +132,36 @@ router.get("/me", async (req, res) => {
     }
 });
 
+// @route   PUT /api/auth/me
+// @desc    Update current user profile
+// @access  Private
+router.put("/me", async (req, res) => {
+    try {
+        const token = req.header("Authorization")?.replace("Bearer ", "");
+        if (!token) return res.status(401).json({ error: "No token provided" });
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "your_jwt_secret_key");
+        const { name, email, profile_photo } = req.body;
+
+        const result = await pool.query(
+            `UPDATE users 
+             SET name = COALESCE($1, name), 
+                 email = COALESCE($2, email),
+                 profile_photo = COALESCE($3, profile_photo)
+             WHERE id = $4 
+             RETURNING id, name, email, profile_photo, created_at`,
+            [name, email, profile_photo, decoded.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({ success: true, user: result.rows[0] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 module.exports = router;

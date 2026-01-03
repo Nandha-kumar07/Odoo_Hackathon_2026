@@ -2,6 +2,11 @@ import api from './api';
 
 export const activityService = {
     // Activities
+    getAllActivities: async () => {
+        const response = await api.get('/activities');
+        return response.data;
+    },
+
     getTripActivities: async (tripId) => {
         const response = await api.get(`/trips/${tripId}/activities`);
         return response.data;

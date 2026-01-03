@@ -15,6 +15,7 @@ import Community from './pages/Community';
 import Calendar from './pages/Calendar';
 import AdminPanel from './pages/AdminPanel';
 import Budget from './pages/Budget';
+import PublicItineraryView from './pages/PublicItineraryView';
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/budget" element={<Budget />} />
+          <Route path="/share/:id" element={<PublicItineraryView />} />
         </Routes>
       </div>
     </Router>

@@ -6,7 +6,7 @@ import { tripService } from '../services/trips';
 import { activityService } from '../services/activities';
 import {
   Share2, Calendar, MapPin, PersonStanding,
-  ChevronRight, Banknote, Plus
+  ChevronRight, Banknote, Plus, Link, Check
 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 
@@ -16,12 +16,15 @@ const ItineraryView = () => {
   const [trip, setTrip] = useState(null);
   const [timeline, setTimeline] = useState([]); // Array of days with activities
   const [loading, setLoading] = useState(true);
+  const [isPublic, setIsPublic] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const tripData = await tripService.getTrip(id);
         setTrip(tripData);
+        setIsPublic(tripData.is_public);
 
         // Fetch itineraries and activities
         const [itineraryData, activitiesData] = await Promise.all([
@@ -65,6 +68,24 @@ const ItineraryView = () => {
     fetchData();
   }, [id]);
 
+  const handleShare = async () => {
+    try {
+      if (!isPublic) {
+        // Enable sharing
+        await tripService.shareTrip(id, true);
+        setIsPublic(true);
+      }
+
+      // Copy link
+      const url = `${window.location.origin}/share/${id}`;
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to share trip", err);
+    }
+  };
+
   if (loading) return <div className="text-center py-20">Loading itinerary...</div>;
   if (!trip) return <div className="text-center py-20">Trip not found</div>;
 
@@ -96,9 +117,12 @@ const ItineraryView = () => {
             </div>
 
             <div className="flex gap-3">
-              <button className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center gap-2">
-                <Share2 size={18} />
-                Share
+              <button
+                onClick={handleShare}
+                className={`px-6 py-2.5 font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 ${isPublic ? 'bg-green-600 hover:bg-green-700 text-white shadow-green-500/20' : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20'}`}
+              >
+                {copied ? <Check size={18} /> : <Share2 size={18} />}
+                {copied ? 'Link Copied!' : (isPublic ? 'Share Link' : 'Make Public')}
               </button>
             </div>
           </div>
@@ -130,10 +154,15 @@ const ItineraryView = () => {
                           </div>
                           <div>
                             <h3 className="text-lg font-bold text-slate-900 mb-1">{activity.title}</h3>
-                            <div className="flex items-center gap-2 text-slate-500 font-medium text-sm mb-3">
-                              <PersonStanding size={16} />
+                            <a
+                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(activity.location)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors font-medium text-sm mb-3"
+                            >
+                              <MapPin size={16} />
                               {activity.location || 'No location'}
-                            </div>
+                            </a>
                             <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider rounded-md">
                               {activity.activity_type || 'Activity'}
                             </span>

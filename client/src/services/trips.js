@@ -30,6 +30,18 @@ export const tripService = {
         const response = await api.delete(`/trips/${id}`);
         return response.data;
     },
+
+    // Toggle public status
+    shareTrip: async (id, is_public) => {
+        const response = await api.put(`/trips/${id}/share`, { is_public });
+        return response.data.trip;
+    },
+
+    // Get public trip (no auth required)
+    getPublicTrip: async (id) => {
+        const response = await api.get(`/trips/public/${id}`);
+        return response.data; // Returns { trip, itinerary, activities }
+    },
 };
 
 export default tripService;

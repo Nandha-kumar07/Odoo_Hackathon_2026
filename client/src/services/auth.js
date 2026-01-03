@@ -43,6 +43,17 @@ export const authService = {
         const user = localStorage.getItem('user');
         return user ? JSON.parse(user) : null;
     },
+
+    // Update user profile
+    updateProfile: async (userData) => {
+        const response = await api.put('/auth/me', userData);
+        if (response.data.success) {
+            const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+            const updatedUser = { ...currentUser, ...response.data.user };
+            localStorage.setItem('user', JSON.stringify(updatedUser)); // Update local storage
+        }
+        return response.data.user;
+    },
 };
 
 export default authService;

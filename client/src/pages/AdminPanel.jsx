@@ -1,13 +1,56 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
-import { Users, Map, Globe, Activity, TrendingUp, DollarSign } from 'lucide-react';
+import { Users, Map, Globe, Activity, TrendingUp, DollarSign, Loader2, AlertCircle } from 'lucide-react';
+import { adminService } from '../services/admin';
 
 const AdminPanel = () => {
-  const stats = [
-    { label: 'Total Users', value: '12,450', change: '+12%', icon: <Users size={20} className="text-blue-600" />, bg: 'bg-blue-50' },
-    { label: 'Trips Created', value: '8,320', change: '+8%', icon: <Map size={20} className="text-purple-600" />, bg: 'bg-purple-50' },
-    { label: 'Revenue', value: '$45,200', change: '+24%', icon: <DollarSign size={20} className="text-green-600" />, bg: 'bg-green-50' },
-    { label: 'Active Now', value: '450', change: '', icon: <Activity size={20} className="text-amber-600" />, bg: 'bg-amber-50' },
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const result = await adminService.getStats();
+        setData(result);
+      } catch (err) {
+        console.error("Failed to fetch admin stats", err);
+        setError("You might not have permission to view this page or the server is down.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (loading) return (
+    <Layout>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <Loader2 size={40} className="animate-spin mb-4 text-blue-600" />
+        <span className="font-bold text-lg">Gathering platform analytics...</span>
+      </div>
+    </Layout>
+  );
+
+  if (error) return (
+    <Layout>
+      <div className="max-w-2xl mx-auto py-20 text-center">
+        <div className="bg-red-50 text-red-600 p-6 rounded-[24px] border border-red-100">
+          <AlertCircle size={48} className="mx-auto mb-4" />
+          <h2 className="text-xl font-bold mb-2">Access Denied</h2>
+          <p className="font-medium">{error}</p>
+        </div>
+      </div>
+    </Layout>
+  );
+
+  const { stats, popularDestinations, growth, activity } = data;
+
+  const statCards = [
+    { label: 'Total Users', value: stats.totalUsers.toLocaleString(), change: '+12%', icon: <Users size={20} className="text-blue-600" />, bg: 'bg-blue-50' },
+    { label: 'Trips Created', value: stats.totalTrips.toLocaleString(), change: '+8%', icon: <Map size={20} className="text-purple-600" />, bg: 'bg-purple-50' },
+    { label: 'Budget Managed', value: `$${stats.totalRevenue.toLocaleString()}`, change: '+24%', icon: <DollarSign size={20} className="text-green-600" />, bg: 'bg-green-50' },
+    { label: 'Active Now', value: stats.activeNow, change: '', icon: <Activity size={20} className="text-amber-600" />, bg: 'bg-amber-50' },
   ];
 
   return (
@@ -15,12 +58,12 @@ const AdminPanel = () => {
       <div className="max-w-7xl mx-auto pb-12">
         <div className="mb-8">
           <h1 className="text-3xl font-extrabold text-slate-900">Admin Dashboard</h1>
-          <p className="text-slate-500 font-medium">Platform overview and analytics.</p>
+          <p className="text-slate-500 font-medium">Platform overview and real-time analytics.</p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, i) => (
+          {statCards.map((stat, i) => (
             <div key={i} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm flex items-start justify-between">
               <div>
                 <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{stat.label}</div>
@@ -38,52 +81,45 @@ const AdminPanel = () => {
           {/* Main Chart Section */}
           <div className="lg:col-span-2 bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
             <div className="flex justify-between items-center mb-8">
-              <h3 className="font-bold text-slate-900 text-lg">User Growth & Trips</h3>
-              <select className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg px-3 py-1.5 outline-none cursor-pointer">
-                <option>Last 30 Days</option>
-                <option>Last 6 Months</option>
-                <option>Last Year</option>
-              </select>
+              <h3 className="font-bold text-slate-900 text-lg">User Growth (Last 6 Months)</h3>
             </div>
 
-            {/* Line Chart */}
-            <div className="h-64 flex items-end justify-between gap-2 px-2 mb-4">
-              {[40, 65, 45, 80, 55, 90, 70, 85, 60, 75, 50, 95].map((h, i) => (
+            {/* Growth Line Chart (Visualized with bars for simplicity without a heavy library) */}
+            <div className="h-64 flex items-end justify-between gap-4 px-2 mb-4">
+              {growth.length > 0 ? growth.map((item, i) => (
                 <div key={i} className="w-full flex flex-col items-center gap-2 group">
                   <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg relative transition-all duration-300 hover:from-blue-600 hover:to-blue-500 cursor-pointer"
-                    style={{ height: `${h}%` }}
+                    style={{ height: `${Math.max((item.count / (stats.totalUsers || 1)) * 100, 10)}%` }}
                   >
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
-                      {Math.floor(h * 50)} users
+                    <div className="absolute -top-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shadow-xl">
+                      {item.count} new users
                     </div>
                   </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{item.month}</span>
                 </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider px-2">
-              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+              )) : (
+                <div className="w-full flex items-center justify-center h-full text-slate-400 font-medium italic">No growth data available yet</div>
+              )}
             </div>
 
-            {/* Monthly Stats Bar Chart */}
+            {/* Monthly Activity Bar Chart */}
             <div className="mt-8 pt-6 border-t border-slate-100">
-              <h4 className="font-bold text-slate-900 mb-4">Monthly Activity</h4>
-              <div className="space-y-3">
-                {[
-                  { month: 'January', value: 85, color: 'bg-blue-500' },
-                  { month: 'February', value: 65, color: 'bg-purple-500' },
-                  { month: 'March', value: 92, color: 'bg-amber-500' },
-                ].map((item, i) => (
+              <h4 className="font-bold text-slate-900 mb-4">Trip Creation Activity</h4>
+              <div className="space-y-4">
+                {activity.length > 0 ? activity.map((item, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <span className="text-xs font-bold text-slate-600 w-20">{item.month}</span>
-                    <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
-                      <div className={`h-full ${item.color} rounded-lg transition-all duration-500 flex items-center justify-end pr-3`}
-                        style={{ width: `${item.value}%` }}
+                    <div className="flex-1 h-8 bg-slate-50 rounded-lg overflow-hidden border border-slate-100">
+                      <div className={`h-full bg-purple-500 rounded-lg transition-all duration-1000 flex items-center justify-end pr-3`}
+                        style={{ width: `${Math.max((item.count / (stats.totalTrips || 1)) * 100, 5)}%` }}
                       >
-                        <span className="text-white text-xs font-bold">{item.value}%</span>
+                        <span className="text-white text-[10px] font-bold">{item.count} trips</span>
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-sm text-slate-400 italic">No activity data recorded.</p>
+                )}
               </div>
             </div>
           </div>
@@ -92,22 +128,33 @@ const AdminPanel = () => {
           <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
             <h3 className="font-bold text-slate-900 text-lg mb-6">Popular Destinations</h3>
             <div className="space-y-6">
-              {[
-                { name: 'Kyoto, Japan', count: 2430, percent: 85 },
-                { name: 'Paris, France', count: 1850, percent: 65 },
-                { name: 'Bali, Indonesia', count: 1240, percent: 45 },
-                { name: 'Rome, Italy', count: 980, percent: 35 },
-              ].map((city, i) => (
+              {popularDestinations.length > 0 ? popularDestinations.map((city, i) => (
                 <div key={i}>
                   <div className="flex justify-between text-sm font-bold text-slate-900 mb-1">
                     <span>{city.name}</span>
-                    <span>{city.count}</span>
+                    <span>{city.count} trips</span>
                   </div>
                   <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-                    <div className="h-full bg-slate-900 rounded-full" style={{ width: `${city.percent}%` }}></div>
+                    <div className="h-full bg-slate-900 rounded-full"
+                      style={{ width: `${(city.count / (stats.totalTrips || 1)) * 100}%` }}></div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-10">
+                  <Globe size={40} className="mx-auto text-slate-200 mb-2" />
+                  <p className="text-slate-400 text-sm font-medium">No trip data available.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-900 mb-2">
+                <TrendingUp size={16} className="text-blue-500" />
+                Insights
+              </div>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Plateform activity has increased by 15% this week. Most new users are planning trips to {popularDestinations[0]?.name || 'new destinations'}.
+              </p>
             </div>
           </div>
         </div>

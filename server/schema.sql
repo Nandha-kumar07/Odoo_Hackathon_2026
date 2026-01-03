@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS trips (
     end_date DATE NOT NULL,
     budget DECIMAL(10, 2) DEFAULT 0,
     status VARCHAR(50) DEFAULT 'planning', -- planning, ongoing, completed
+    is_public BOOLEAN DEFAULT false,
     image_url TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

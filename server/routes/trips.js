@@ -40,6 +40,46 @@ router.get("/:id", authMiddleware, async (req, res) => {
     }
 });
 
+// @route   GET /api/trips/public/:id
+// @desc    Get public trip by ID with details
+// @access  Public
+router.get("/public/:id", async (req, res) => {
+    try {
+        const tripResult = await pool.query(
+            "SELECT * FROM trips WHERE id = $1 AND is_public = true",
+            [req.params.id]
+        );
+
+        if (tripResult.rows.length === 0) {
+            return res.status(404).json({ error: "Trip not found or not public" });
+        }
+
+        const trip = tripResult.rows[0];
+
+        // Fetch Itinerary
+        const itineraryResult = await pool.query(
+            "SELECT * FROM itineraries WHERE trip_id = $1 ORDER BY day_number ASC",
+            [trip.id]
+        );
+
+        // Fetch Activities
+        const activitiesResult = await pool.query(
+            "SELECT * FROM activities WHERE trip_id = $1 ORDER BY activity_date ASC, activity_time ASC",
+            [trip.id]
+        );
+
+        res.json({
+            success: true,
+            trip,
+            itinerary: itineraryResult.rows,
+            activities: activitiesResult.rows
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 // @route   POST /api/trips
 // @desc    Create a new trip
 // @access  Private
@@ -82,6 +122,29 @@ router.put("/:id", authMiddleware, async (req, res) => {
            image_url = COALESCE($7, image_url)
        WHERE id = $8 AND user_id = $9 RETURNING *`,
             [name, destination, start_date, end_date, budget, status, image_url, req.params.id, req.user.id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: "Trip not found" });
+        }
+
+        res.json({ success: true, trip: result.rows[0] });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// @route   PUT /api/trips/:id/share
+// @desc    Toggle trip public status
+// @access  Private
+router.put("/:id/share", authMiddleware, async (req, res) => {
+    try {
+        const { is_public } = req.body;
+
+        const result = await pool.query(
+            "UPDATE trips SET is_public = $1 WHERE id = $2 AND user_id = $3 RETURNING *",
+            [is_public, req.params.id, req.user.id]
         );
 
         if (result.rows.length === 0) {
