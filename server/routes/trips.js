@@ -85,16 +85,16 @@ router.get("/public/:id", async (req, res) => {
 // @access  Private
 router.post("/", authMiddleware, async (req, res) => {
     try {
-        const { name, destination, start_date, end_date, budget, image_url } = req.body;
+        const { name, destination, start_date, end_date, budget, image_url, traveler_type } = req.body;
 
         if (!name || !destination || !start_date || !end_date) {
             return res.status(400).json({ error: "Please provide all required fields" });
         }
 
         const result = await pool.query(
-            `INSERT INTO trips (user_id, name, destination, start_date, end_date, budget, image_url, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-            [req.user.id, name, destination, start_date, end_date, budget || 0, image_url, "planning"]
+            `INSERT INTO trips (user_id, name, destination, start_date, end_date, budget, image_url, status, traveler_type) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+            [req.user.id, name, destination, start_date, end_date, budget || 0, image_url, "planning", traveler_type]
         );
 
         res.status(201).json({ success: true, trip: result.rows[0] });
@@ -109,7 +109,7 @@ router.post("/", authMiddleware, async (req, res) => {
 // @access  Private
 router.put("/:id", authMiddleware, async (req, res) => {
     try {
-        const { name, destination, start_date, end_date, budget, status, image_url } = req.body;
+        const { name, destination, start_date, end_date, budget, status, image_url, traveler_type } = req.body;
 
         const result = await pool.query(
             `UPDATE trips 
@@ -119,9 +119,10 @@ router.put("/:id", authMiddleware, async (req, res) => {
            end_date = COALESCE($4, end_date),
            budget = COALESCE($5, budget),
            status = COALESCE($6, status),
-           image_url = COALESCE($7, image_url)
-       WHERE id = $8 AND user_id = $9 RETURNING *`,
-            [name, destination, start_date, end_date, budget, status, image_url, req.params.id, req.user.id]
+           image_url = COALESCE($7, image_url),
+           traveler_type = COALESCE($8, traveler_type)
+       WHERE id = $9 AND user_id = $10 RETURNING *`,
+            [name, destination, start_date, end_date, budget, status, image_url, traveler_type, req.params.id, req.user.id]
         );
 
         if (result.rows.length === 0) {

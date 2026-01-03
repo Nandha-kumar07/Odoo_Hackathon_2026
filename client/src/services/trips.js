@@ -42,6 +42,12 @@ export const tripService = {
         const response = await api.get(`/trips/public/${id}`);
         return response.data; // Returns { trip, itinerary, activities }
     },
+
+    // Generate smart itinerary
+    generateItinerary: async (tripId) => {
+        const response = await api.post(`/itinerary/generate/${tripId}`);
+        return response.data;
+    },
 };
 
 export default tripService;

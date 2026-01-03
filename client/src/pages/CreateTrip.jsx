@@ -11,8 +11,17 @@ const CreateTrip = () => {
   const [tripName, setTripName] = useState('');
   const [dates, setDates] = useState({ start: '', end: '' });
   const [budget, setBudget] = useState('');
+  const [travelerType, setTravelerType] = useState('Solo');
+  const [generateSmart, setGenerateSmart] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const travelerTypes = [
+    { id: 'Solo', label: 'Solo', icon: PersonStanding },
+    { id: 'Couple', label: 'Couple', icon: PersonStanding }, // Placeholder, would use Heart or similar
+    { id: 'Friends', label: 'Friends', icon: PersonStanding }, // Placeholder, would use Users
+    { id: 'Family', label: 'Family', icon: PersonStanding }, // Placeholder, would use Home
+  ];
 
   const suggestions = [
     { id: 1, name: 'Kyoto', country: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1000&auto=format&fit=crop' },
@@ -39,8 +48,15 @@ const CreateTrip = () => {
         start_date: dates.start,
         end_date: dates.end,
         budget: parseFloat(budget) || 0,
-        image_url: selectedDest.image
+        image_url: selectedDest.image,
+        traveler_type: travelerType
       });
+
+      if (generateSmart) {
+        // Call the smart generation endpoint
+        await tripService.generateItinerary(newTrip.id);
+      }
+
       navigate('/trips');
     } catch (err) {
       setError('Failed to create trip. Please try again.');
@@ -138,6 +154,38 @@ const CreateTrip = () => {
                       className="w-full h-14 pl-12 pr-5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="block text-sm font-bold text-slate-900">Who are you traveling with?</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {['Solo', 'Couple', 'Friends', 'Family'].map((type) => (
+                      <div
+                        key={type}
+                        onClick={() => setTravelerType(type)}
+                        className={`
+                          cursor-pointer p-4 rounded-xl border-2 text-center transition-all
+                          ${travelerType === type ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-slate-100 bg-slate-50 text-slate-500 hover:border-slate-200'}
+                        `}
+                      >
+                        <div className="font-bold">{type}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="pt-4">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={generateSmart}
+                      onChange={(e) => setGenerateSmart(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span className="ml-3 text-sm font-bold text-slate-900">Generate a smart itinerary for me</span>
+                  </label>
+                  <p className="text-xs text-slate-500 mt-1 ml-14">We'll suggest places and food based on your traveler type.</p>
                 </div>
               </div>
             </div>
