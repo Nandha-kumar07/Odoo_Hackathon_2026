@@ -1,21 +1,37 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Search, Bell, MapPin, ChevronRight, Star, Plus, Globe, Wallet, Calendar } from 'lucide-react';
+import { tripService } from '../services/trips';
+import { authService } from '../services/auth';
 
 const MainLanding = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(authService.getStoredUser());
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const fetchedTrips = await tripService.getAllTrips();
+        setTrips(fetchedTrips);
+      } catch (error) {
+        console.error('Failed to fetch trips:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const upcomingTrips = trips.filter(t => t.status === 'planning' || t.status === 'ongoing');
+  const pastTrips = trips.filter(t => t.status === 'completed');
 
   const stats = [
-    { label: 'Upcoming Trips', value: '3', sub: '+1 new', icon: <MapPin size={24} className="text-white" />, gradient: 'from-blue-500 to-blue-600' },
-    { label: 'Countries Visited', value: '12', sub: '+2 this year', icon: <Globe size={24} className="text-white" />, gradient: 'from-purple-500 to-purple-600' },
-    { label: 'Budget Spent', value: '$4,200', sub: 'of $8,000', icon: <Wallet size={24} className="text-white" />, gradient: 'from-amber-500 to-amber-600', isBudget: true },
-  ];
-
-  const adventures = [
-    { title: 'Tokyo, Japan', date: 'Oct 15 - Oct 22', status: 'ready', image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?q=80&w=1194&auto=format&fit=crop', days: '12' },
-    { title: 'Paris, France', date: 'Nov 10 - Nov 18', status: 'pending', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=1173&auto=format&fit=crop', days: 'delayed' },
-    { title: 'Bali, Indonesia', date: 'Dec 05 - Dec 12', status: 'ready', image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=676&auto=format&fit=crop', days: '64' },
+    { label: 'Upcoming Trips', value: upcomingTrips.length, sub: '+1 new', icon: <MapPin size={24} className="text-white" />, gradient: 'from-blue-500 to-blue-600' },
+    { label: 'Total Trips', value: trips.length, sub: '+2 this year', icon: <Globe size={24} className="text-white" />, gradient: 'from-purple-500 to-purple-600' },
+    { label: 'Budget Spent', value: '$' + trips.reduce((acc, t) => acc + parseFloat(t.budget || 0), 0).toLocaleString(), sub: 'Total', icon: <Wallet size={24} className="text-white" />, gradient: 'from-amber-500 to-amber-600', isBudget: true },
   ];
 
   const destinations = [
@@ -45,12 +61,12 @@ const MainLanding = () => {
               <span className="absolute top-4 right-4 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white shadow-sm"></span>
             </button>
 
-            <div className="flex items-center gap-3 p-1.5 pr-5 bg-white/80 backdrop-blur-md border border-white/50 rounded-2xl shadow-sm cursor-pointer hover:bg-white transition-colors">
+            <div className="flex items-center gap-3 p-1.5 pr-5 bg-white/80 backdrop-blur-md border border-white/50 rounded-2xl shadow-sm cursor-pointer hover:bg-white transition-colors" onClick={() => navigate('/profile')}>
               <div className="w-11 h-11 rounded-xl overflow-hidden shadow-md">
-                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=687&auto=format&fit=crop" className="w-full h-full object-cover" alt="User" />
+                <img src={user?.profile_photo || "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=687&auto=format&fit=crop"} className="w-full h-full object-cover" alt="User" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-slate-900 leading-none">Alex Rivera</span>
+                <span className="text-sm font-bold text-slate-900 leading-none">{user?.name || 'Guest User'}</span>
                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Explorer</span>
               </div>
             </div>
@@ -75,9 +91,9 @@ const MainLanding = () => {
         <div className="flex justify-between items-end mb-10">
           <div>
             <h2 className="text-5xl font-black text-slate-900 tracking-tight flex items-center gap-4 mb-2">
-              Good morning, Alex <span className="animate-bounce-slow text-4xl">👋</span>
+              Good morning, {user?.name?.split(' ')[0] || 'Traveler'} <span className="animate-bounce-slow text-4xl">👋</span>
             </h2>
-            <p className="text-slate-500 text-lg font-medium">Ready for your next adventure? You have 3 upcoming trips.</p>
+            <p className="text-slate-500 text-lg font-medium">Ready for your next adventure? You have {upcomingTrips.length} upcoming trips.</p>
           </div>
         </div>
 
@@ -130,39 +146,53 @@ const MainLanding = () => {
               <h4 className="text-xl font-bold text-slate-900 mb-2">New Adventure</h4>
               <p className="text-slate-400 text-center px-8 text-sm font-medium">Start planning your next unforgettable journey.</p>
             </div>
+            {loading ? (
+              <div className="text-slate-500 font-medium p-4">Loading trips...</div>
+            ) : upcomingTrips.length === 0 ? (
+              <div className="min-w-[300px] h-[400px] flex flex-col items-center justify-center bg-slate-50 rounded-[32px] border-2 border-dashed border-slate-200">
+                <p className="text-slate-500 font-bold mb-4">No upcoming trips</p>
+                <button onClick={() => navigate('/create-trip')} className="px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors">
+                  Plan a Trip
+                </button>
+              </div>
+            ) : (
+              upcomingTrips.map((adv, idx) => (
+                <div key={idx} className="min-w-[320px] md:min-w-[380px] h-[480px] rounded-[40px] relative group cursor-pointer snap-center shadow-2xl shadow-slate-200 overflow-hidden transition-all hover:-translate-y-2">
+                  <img src={adv.image_url || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={adv.name} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent"></div>
 
-            {adventures.map((adv, idx) => (
-              <div key={idx} className="min-w-[320px] h-[400px] relative rounded-[32px] overflow-hidden group cursor-pointer shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 snap-start">
-                <img src={adv.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={adv.title} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
-
-                {/* Floating status pill */}
-                <div className="absolute top-5 left-5 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg border border-white/20 text-white text-xs font-bold uppercase tracking-wider">
-                  {adv.days} Days Away
-                </div>
-
-                <div className="absolute bottom-0 left-0 right-0 p-8">
-                  <h4 className="text-2xl font-black text-white leading-none mb-3">{adv.title}</h4>
-                  <div className="flex items-center gap-2 text-white/80 text-sm font-bold mb-6">
-                    <Calendar size={16} />
-                    {adv.date}
+                  <div className="absolute top-5 right-5 px-4 py-2 bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+                    {adv.status || 'Planning'}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <button className="py-3 bg-white text-slate-900 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors shadow-lg">
-                      View Itinerary
-                    </button>
-                    <div className="flex items-center justify-end -space-x-3 pr-2">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="w-9 h-9 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm">
-                          <img src={`https://i.pravatar.cc/100?u=${i + idx * 10}`} alt="Avatar" />
-                        </div>
-                      ))}
+                  <div className="absolute top-5 left-5 px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg border border-white/20 text-white text-xs font-bold uppercase tracking-wider">
+                    {Math.ceil((new Date(adv.start_date) - new Date()) / (1000 * 60 * 60 * 24))} Days Away
+                  </div>
+
+                  <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <h4 className="text-2xl font-black text-white leading-none mb-3">{adv.name}</h4>
+                    <div className="flex items-center gap-2 text-white/80 text-sm font-bold mb-6">
+                      <Calendar size={16} />
+                      {new Date(adv.start_date).toLocaleDateString()}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <button className="py-3 bg-white text-slate-900 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors shadow-lg" onClick={() => navigate(`/itinerary/${adv.id}`)}>
+                        View Itinerary
+                      </button>
+                      <div className="flex items-center justify-end -space-x-3 pr-2">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="w-9 h-9 rounded-full border-2 border-white bg-slate-200 overflow-hidden shadow-sm">
+                            <img src={`https://i.pravatar.cc/100?u=${i + idx * 10}`} alt="Avatar" />
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 

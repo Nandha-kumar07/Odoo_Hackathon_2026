@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS activities (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Expenses Table
+
 CREATE TABLE IF NOT EXISTS expenses (
     id SERIAL PRIMARY KEY,
     trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,
@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS expenses (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Itineraries Table (Day-by-day breakdown)
+
 CREATE TABLE IF NOT EXISTS itineraries (
     id SERIAL PRIMARY KEY,
     trip_id INTEGER REFERENCES trips(id) ON DELETE CASCADE,

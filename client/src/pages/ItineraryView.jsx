@@ -1,12 +1,73 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import MapView from '../components/MapView';
+import { tripService } from '../services/trips';
+import { activityService } from '../services/activities';
 import {
-  Share2, Download, Calendar, List, MapPin, Bike,
-  Banknote, Plus, FileText, Edit3, ChevronRight, Activity, PersonStanding
+  Share2, Calendar, MapPin, PersonStanding,
+  ChevronRight, Banknote, Plus
 } from 'lucide-react';
+import { format, parseISO, differenceInDays } from 'date-fns';
 
 const ItineraryView = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [trip, setTrip] = useState(null);
+  const [timeline, setTimeline] = useState([]); // Array of days with activities
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const tripData = await tripService.getTrip(id);
+        setTrip(tripData);
+
+        // Fetch itineraries and activities
+        const [itineraryData, activitiesData] = await Promise.all([
+          activityService.getTripItinerary(id),
+          activityService.getTripActivities(id)
+        ]);
+
+        // Build Timeline
+        let days = [];
+        if (tripData.start_date && tripData.end_date) {
+          const start = parseISO(tripData.start_date);
+          const end = parseISO(tripData.end_date);
+          const diff = differenceInDays(end, start) + 1;
+
+          for (let i = 0; i < diff; i++) {
+            const dayNum = i + 1;
+            const itinDay = itineraryData.find(d => d.day_number === dayNum);
+            const dayDate = new Date(start.getTime() + i * 86400000);
+
+            days.push({
+              dayNumber: dayNum,
+              date: dayDate,
+              title: itinDay?.title || `Day ${dayNum}`,
+              description: itinDay?.description || '',
+              activities: activitiesData.filter(a => {
+                if (!a.activity_date) return false;
+                const aDate = new Date(a.activity_date);
+                return aDate.toDateString() === dayDate.toDateString();
+              })
+            });
+          }
+        }
+        setTimeline(days);
+
+      } catch (err) {
+        console.error("Failed to load itinerary", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [id]);
+
+  if (loading) return <div className="text-center py-20">Loading itinerary...</div>;
+  if (!trip) return <div className="text-center py-20">Trip not found</div>;
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto pb-12">
@@ -14,43 +75,30 @@ const ItineraryView = () => {
         <div className="mb-8">
           {/* Breadcrumbs */}
           <div className="flex items-center gap-2 text-sm text-slate-500 font-medium mb-4">
-            <span>Dashboard</span>
+            <span onClick={() => navigate('/home')} className="cursor-pointer hover:text-slate-900">Dashboard</span>
             <ChevronRight size={14} />
-            <span>My Trips</span>
+            <span onClick={() => navigate('/trips')} className="cursor-pointer hover:text-slate-900">My Trips</span>
             <ChevronRight size={14} />
-            <span className="text-slate-900 font-bold">Itinerary for a selected place</span>
+            <span className="text-slate-900 font-bold">{trip.name}</span>
           </div>
 
           <div className="flex flex-col xl:flex-row gap-6 justify-between items-start xl:items-end">
             <div>
-              <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Itinerary for a selected place</h1>
+              <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">{trip.name}</h1>
               <div className="flex items-center gap-2 text-slate-500 font-medium">
                 <Calendar size={18} />
-                <span>Jun 15 - Jun 17</span>
+                <span>{format(parseISO(trip.start_date), 'MMM d')} - {format(parseISO(trip.end_date), 'MMM d')}</span>
                 <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
-                <span>2 Days</span>
+                <span>{timeline.length} Days</span>
                 <span className="w-1 h-1 bg-slate-400 rounded-full"></span>
-                <span>2 Travelers</span>
+                <span>{trip.destination}</span>
               </div>
             </div>
 
             <div className="flex gap-3">
-              <div className="bg-white p-1 rounded-xl border border-slate-200 flex">
-                <button className="px-4 py-2 bg-blue-50 text-blue-600 rounded-lg flex items-center gap-2 font-bold text-sm transition-all">
-                  <List size={16} />
-                  List
-                </button>
-                <button className="px-4 py-2 text-slate-500 hover:text-slate-700 rounded-lg flex items-center gap-2 font-bold text-sm transition-all">
-                  <Calendar size={16} />
-                  Calendar
-                </button>
-              </div>
               <button className="px-6 py-2.5 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all flex items-center gap-2">
                 <Share2 size={18} />
                 Share
-              </button>
-              <button className="p-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all">
-                <Download size={20} />
               </button>
             </div>
           </div>
@@ -59,119 +107,53 @@ const ItineraryView = () => {
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* Main Timeline Content */}
           <div className="xl:col-span-2 space-y-10">
-
-            {/* Day 1 */}
-            <div className="relative pl-8 border-l-2 border-slate-100/50">
-              {/* Day Header */}
-              <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-white"></div>
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4">
-                  <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-bold">Day 1</span>
-                  <h2 className="text-xl font-bold text-slate-900">City Arrival & Exploration</h2>
-                </div>
-                <span className="text-slate-400 font-bold text-sm">Jun 15, Sat</span>
-              </div>
-
-              <div className="space-y-4">
-                {/* Activity Card */}
-                <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex justify-between items-start">
-                    <div className="flex gap-6">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-xl font-black text-slate-900">10:00</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase">AM</div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">Physical activity</h3>
-                        <div className="flex items-center gap-2 text-slate-500 font-medium text-sm mb-3">
-                          <PersonStanding size={16} />
-                          City Park & Nature Trail
-                        </div>
-                        <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider rounded-md">
-                          Moderate Intensity
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-slate-300">
-                      <PersonStanding size={24} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expense Card */}
-                <div className="bg-green-50/50 p-5 rounded-[20px] border border-green-100 flex justify-between items-center">
+            {timeline.map((day) => (
+              <div key={day.dayNumber} className="relative pl-8 border-l-2 border-slate-100/50">
+                {/* Day Header */}
+                <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-blue-500 ring-4 ring-white"></div>
+                <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
-                      <Banknote size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900">Expense</h4>
-                      <p className="text-xs font-bold text-slate-400">Lunch & Park Entry Fees</p>
-                    </div>
+                    <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-lg text-sm font-bold">Day {day.dayNumber}</span>
+                    <h2 className="text-xl font-bold text-slate-900">{day.title}</h2>
                   </div>
-                  <div className="text-xl font-black text-slate-900">$45.00</div>
+                  <span className="text-slate-400 font-bold text-sm">{format(day.date, 'MMM d, EEE')}</span>
                 </div>
-              </div>
-            </div>
 
-            {/* Day 2 */}
-            <div className="relative pl-8 border-l-2 border-slate-100/50">
-              {/* Day Header */}
-              <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-green-500 ring-4 ring-white"></div>
-
-              <div className="flex justify-between items-center mb-6">
-                <div className="flex items-center gap-4">
-                  <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-lg text-sm font-bold">Day 2</span>
-                  <h2 className="text-xl font-bold text-slate-900">Cultural Immersion</h2>
-                </div>
-                <span className="text-slate-400 font-bold text-sm">Jun 16, Sun</span>
-              </div>
-
-              <div className="space-y-4">
-                {/* Activity Card */}
-                <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all">
-                  <div className="flex justify-between items-start">
-                    <div className="flex gap-6">
-                      <div className="text-center min-w-[60px]">
-                        <div className="text-xl font-black text-slate-900">09:00</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase">AM</div>
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">Physical activity</h3>
-                        <div className="flex items-center gap-2 text-slate-500 font-medium text-sm mb-3">
-                          <Bike size={16} />
-                          Historic Center Bike Tour
+                <div className="space-y-4">
+                  {day.activities.length > 0 ? day.activities.map((activity, idx) => (
+                    <div key={idx} className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                      <div className="flex justify-between items-start">
+                        <div className="flex gap-6">
+                          <div className="text-center min-w-[60px]">
+                            <div className="text-xl font-black text-slate-900">{activity.activity_time ? activity.activity_time.slice(0, 5) : '--:--'}</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase"></div>
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-slate-900 mb-1">{activity.title}</h3>
+                            <div className="flex items-center gap-2 text-slate-500 font-medium text-sm mb-3">
+                              <PersonStanding size={16} />
+                              {activity.location || 'No location'}
+                            </div>
+                            <span className="inline-block px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                              {activity.activity_type || 'Activity'}
+                            </span>
+                          </div>
                         </div>
-                        <span className="inline-block px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wider rounded-md">
-                          High Intensity
-                        </span>
                       </div>
                     </div>
-                    <div className="text-slate-300">
-                      <Bike size={24} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Expense Card */}
-                <div className="bg-green-50/50 p-5 rounded-[20px] border border-green-100 flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
-                      <Banknote size={20} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900">Expense</h4>
-                      <p className="text-xs font-bold text-slate-400">Bike Rental & Museum Tickets</p>
-                    </div>
-                  </div>
-                  <div className="text-xl font-black text-slate-900">$85.00</div>
+                  )) : (
+                    <div className="text-slate-400 text-sm italic">No activities planned for this day.</div>
+                  )}
                 </div>
               </div>
-            </div>
+            ))}
 
             {/* Add Activity Button */}
             <div className="pl-8">
-              <button className="w-full py-4 border-2 border-dashed border-slate-200 rounded-[24px] text-slate-500 font-bold hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all flex items-center justify-center gap-2">
+              <button
+                onClick={() => navigate('/search')}
+                className="w-full py-4 border-2 border-dashed border-slate-200 rounded-[24px] text-slate-500 font-bold hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+              >
                 <Plus size={20} />
                 Add Activity
               </button>
@@ -183,25 +165,23 @@ const ItineraryView = () => {
             {/* Map Card */}
             <div className="bg-white p-3 rounded-[24px] border border-slate-100 shadow-sm">
               <MapView
-                center={[51.5074, -0.1278]} // London coordinates
+                center={[51.5074, -0.1278]} // Mock location
                 zoom={12}
                 height="240px"
                 markers={[
-                  { position: [51.5074, -0.1278], title: 'London, UK', description: 'Current trip location' },
-                  { position: [51.5014, -0.1419], title: 'Buckingham Palace', description: 'Day 1 - Morning' },
-                  { position: [51.5194, -0.1270], title: 'British Museum', description: 'Day 1 - Afternoon' },
+                  { position: [51.5074, -0.1278], title: trip.destination, description: 'Trip Destination' }
                 ]}
               />
               <div className="mt-3 px-3">
                 <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Current Location</div>
                 <div className="flex items-center gap-1 font-bold text-slate-900">
                   <MapPin size={16} className="text-blue-600" />
-                  London, UK
+                  {trip.destination}
                 </div>
               </div>
             </div>
 
-            {/* Budget Overview */}
+            {/* Budget Overview (Mock functionality for now) */}
             <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold text-slate-900">Budget Overview</h3>
@@ -210,28 +190,16 @@ const ItineraryView = () => {
 
               <div className="mb-2 flex justify-between text-sm font-medium">
                 <span className="text-slate-500">Spent</span>
-                <span className="text-slate-900 font-extrabold">$130 / $500</span>
+                <span className="text-slate-900 font-extrabold">$130 / ${trip.budget}</span>
               </div>
               <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-6">
                 <div className="h-full bg-green-500 rounded-full" style={{ width: '26%' }}></div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Daily Avg.</div>
-                  <div className="font-black text-slate-900">$65.00</div>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Remaining</div>
-                  <div className="font-black text-slate-900">$370.00</div>
-                </div>
               </div>
             </div>
 
             {/* Trip Summary */}
             <div className="bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
               <h3 className="font-bold text-slate-900 mb-6">Trip Summary</h3>
-
               <div className="space-y-6">
                 <div className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
@@ -240,42 +208,10 @@ const ItineraryView = () => {
                     </div>
                     <span className="font-medium text-slate-600">Total Budget</span>
                   </div>
-                  <span className="font-extrabold text-slate-900">$500</span>
-                </div>
-
-                <div className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                      <MapPin size={20} />
-                    </div>
-                    <span className="font-medium text-slate-600">Cities</span>
-                  </div>
-                  <span className="font-extrabold text-slate-900">1</span>
-                </div>
-
-                <div className="flex items-center justify-between group">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                      <Activity size={20} />
-                    </div>
-                    <span className="font-medium text-slate-600">Activities</span>
-                  </div>
-                  <span className="font-extrabold text-slate-900">4 Planned</span>
+                  <span className="font-extrabold text-slate-900">${trip.budget}</span>
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <button className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all">
-                <FileText size={18} />
-                PDF Export
-              </button>
-              <button className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:text-slate-900 transition-all">
-                <Edit3 size={18} />
-                Edit Dates
-              </button>
-            </div>
-
           </div>
         </div>
       </div>

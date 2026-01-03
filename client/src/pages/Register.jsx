@@ -1,13 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Mail, Phone, ChevronDown, User, MapPin, ArrowRight } from 'lucide-react';
+import { Camera, Mail, Phone, ChevronDown, User, MapPin, ArrowRight, Lock, Eye, EyeOff } from 'lucide-react';
+import { authService } from '../services/auth';
 
 const Register = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleRegister = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleRegister = async (e) => {
     e.preventDefault();
-    navigate('/');
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      });
+      navigate('/login'); // Redirect to login after successful registration
+    } catch (err) {
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -35,49 +69,40 @@ const Register = () => {
             <p className="text-slate-500 font-medium text-sm">Join GlobeTrotter for free</p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium mb-6">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleRegister} className="space-y-5">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">First Name</label>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="text"
-                  placeholder="Jane"
-                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 text-sm font-medium"
-                  required
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Last Name</label>
-                <input
-                  type="text"
-                  placeholder="Doe"
-                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 text-sm font-medium"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  className="w-full h-12 pl-11 pr-4 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-bold"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Email Address</label>
               <div className="relative">
-                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                 <input
                   type="email"
-                  placeholder="jane@example.com"
-                  className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 text-sm font-medium"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Phone Number</label>
-              <div className="relative">
-                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  type="tel"
-                  placeholder="+1 (555) 000-0000"
-                  className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 text-sm font-medium"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="john@example.com"
+                  className="w-full h-12 pl-11 pr-4 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-bold"
                   required
                 />
               </div>
@@ -85,38 +110,59 @@ const Register = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">City</label>
-                <input
-                  type="text"
-                  placeholder="New York"
-                  className="w-full h-11 px-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 text-sm font-medium"
-                  required
-                />
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="w-full h-12 pl-11 pr-10 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-bold"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  >
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
               </div>
               <div className="space-y-1.5">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1">Country</label>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Confirm</label>
                 <div className="relative">
-                  <select className="w-full h-11 px-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all appearance-none text-slate-900 text-sm font-medium cursor-pointer">
-                    <option>United States</option>
-                    <option>United Kingdom</option>
-                    <option>Canada</option>
-                    <option>India</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type="password"
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    className="w-full h-12 pl-11 pr-4 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-bold"
+                    required
+                  />
                 </div>
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full h-12 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-2"
+              disabled={loading}
+              className="w-full h-12 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 mt-4"
             >
-              Create Account
-              <ArrowRight size={18} />
+              {loading ? 'Creating Account...' : (
+                <>
+                  Create Account
+                  <ArrowRight size={18} />
+                </>
+              )}
             </button>
 
             <p className="text-center text-slate-500 font-medium text-sm mt-6">
-              Already have an account? <span onClick={() => navigate('/')} className="text-blue-600 font-bold cursor-pointer hover:underline">Log in</span>
+              Already have an account? <span onClick={() => navigate('/login')} className="text-blue-600 font-bold cursor-pointer hover:underline">Log in</span>
             </p>
           </form>
         </div>

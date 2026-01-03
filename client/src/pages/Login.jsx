@@ -1,14 +1,29 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Globe, ArrowRight, Camera } from 'lucide-react';
+import { authService } from '../services/auth';
 
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
+  const [email, setEmail] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    navigate('/home');
+    setError('');
+    setLoading(true);
+
+    try {
+      await authService.login({ email, password });
+      navigate('/home');
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -45,12 +60,20 @@ const Login = () => {
             <p className="text-slate-500 text-lg font-medium">Please enter your details to sign in.</p>
           </div>
 
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700 ml-1">Email Address</label>
               <input
                 type="email"
                 placeholder="name@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-medium"
                 required
               />
@@ -65,7 +88,9 @@ const Login = () => {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
-                  className="w-full h-14 px-5 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-medium"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full h-14 px-5 pr-12 bg-slate-50 border-2 border-slate-100 focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all placeholder:text-slate-400 text-slate-900 font-medium"
                   required
                 />
                 <button
@@ -80,10 +105,15 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-full h-14 bg-blue-600 text-white font-bold rounded-2xl shadow-xl shadow-blue-500/20 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+              disabled={loading}
+              className="w-full h-14 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 group"
             >
-              Sign in
-              <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+              {loading ? 'Signing in...' : (
+                <>
+                  <span>Sign In</span>
+                  <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
 

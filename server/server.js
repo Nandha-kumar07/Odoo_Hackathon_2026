@@ -22,6 +22,8 @@ app.get("/health", (req, res) => {
 // API Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/trips", require("./routes/trips"));
+app.use("/api", require("./routes/activities")); // Note: activities route handles /trips/:id/activities and /activities/:id
+app.use("/api", require("./routes/itinerary")); // Note: itinerary route handles /trips/:id/itinerary and /itinerary/:id
 app.use("/api/expenses", require("./routes/expenses"));
 
 const PORT = process.env.PORT || 5000;

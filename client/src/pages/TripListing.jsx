@@ -1,67 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { Plus, Calendar, MapPin, Users, MoreVertical, ArrowRight, Clock } from 'lucide-react';
+import { Plus, Calendar, MapPin, Users, MoreVertical, ArrowRight, Clock, CheckCircle } from 'lucide-react';
+import { tripService } from '../services/trips';
 
 const TripListing = () => {
   const navigate = useNavigate();
+  const [trips, setTrips] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock Data
-  const ongoingTrip = {
-    id: 1,
-    title: 'Euro Summer Tour',
-    description: 'Exploring the hidden gems of Paris, Rome, and Barcelona. Currently enjoying croissants by the Seine.',
-    dates: 'Jul 15 - Aug 01, 2024',
-    location: 'Paris • Rome • Barcelona',
-    travelers: '2 Adults',
-    image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2073&auto=format&fit=crop'
-  };
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const data = await tripService.getAllTrips();
+        setTrips(data);
+      } catch (error) {
+        console.error('Failed to fetch trips:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTrips();
+  }, []);
 
-  const upcomingTrips = [
-    {
-      id: 2,
-      title: 'Japan Spring Adventure',
-      description: 'Cherry blossoms, sushi, and ancient temples in Kyoto.',
-      dates: 'Apr 10 - Apr 24',
-      destinations: 'Tokyo, Kyoto, Osaka',
-      daysLeft: 14,
-      status: 'confirmed',
-      image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=2067&auto=format&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Patagonia Hike',
-      description: 'Planning stage for the W Trek.',
-      dates: 'TBD',
-      destinations: 'Chile, Argentina',
-      status: 'draft',
-      image: null
-    }
-  ];
+  const ongoingTrips = trips.filter(t => t.status === 'ongoing');
+  const upcomingTrips = trips.filter(t => t.status === 'planning');
+  const completedTrips = trips.filter(t => t.status === 'completed');
 
-  const completedTrips = [
-    {
-      id: 4,
-      title: 'Bali Retreat',
-      date: 'Sep 2023',
-      location: 'Ubud, Bali',
-      image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1000&auto=format&fit=crop'
-    },
-    {
-      id: 5,
-      title: 'NYC Business Trip',
-      date: 'Oct 2023',
-      location: 'Manhattan, NY',
-      image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=2070&auto=format&fit=crop'
-    },
-    {
-      id: 6,
-      title: 'London Weekend',
-      date: 'Dec 2023',
-      location: 'London, UK',
-      image: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?q=80&w=2070&auto=format&fit=crop'
-    }
-  ];
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-xl font-bold text-slate-500">Loading trips...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -85,189 +59,146 @@ const TripListing = () => {
         <div className="space-y-12">
 
           {/* ONGOING SECTION */}
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
-              <h2 className="text-xl font-bold text-slate-900">Ongoing</h2>
-            </div>
-
-            <div className="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm flex flex-col lg:flex-row group hover:shadow-md transition-all">
-              {/* Image Side */}
-              <div className="lg:w-2/5 relative h-64 lg:h-auto overflow-hidden">
-                <img src={ongoingTrip.image} alt={ongoingTrip.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute top-4 left-4">
-                  <span className="px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg">
-                    Currently Traveling
-                  </span>
-                </div>
+          {ongoingTrips.length > 0 && (
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1.5 h-8 bg-blue-600 rounded-full"></div>
+                <h2 className="text-xl font-bold text-slate-900">Ongoing</h2>
               </div>
-
-              {/* Content Side */}
-              <div className="flex-1 p-8 flex flex-col justify-between">
-                <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-2xl font-extrabold text-slate-900">{ongoingTrip.title}</h3>
-                    <button className="text-slate-400 hover:text-slate-600"><MoreVertical size={20} /></button>
+              {ongoingTrips.map(trip => (
+                <div key={trip.id} className="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm flex flex-col lg:flex-row group hover:shadow-md transition-all cursor-pointer" onClick={() => navigate(`/itinerary/${trip.id}`)}>
+                  {/* Image Side */}
+                  <div className="lg:w-2/5 relative h-64 lg:h-auto overflow-hidden">
+                    <img src={trip.image_url || "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?q=80&w=2073&auto=format&fit=crop"} alt={trip.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <div className="absolute top-4 left-4">
+                      <span className="px-3 py-1 bg-blue-600/90 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider rounded-lg shadow-lg">
+                        Currently Traveling
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-slate-500 font-medium mb-6 leading-relaxed">{ongoingTrip.description}</p>
 
-                  <div className="flex flex-wrap gap-6">
-                    <div className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                      <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                        <Calendar size={18} />
+                  {/* Content Side */}
+                  <div className="lg:w-3/5 p-8 flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-2xl font-black text-slate-900">{trip.name}</h3>
+                        <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400">
+                          <MoreVertical size={20} />
+                        </button>
                       </div>
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Dates</div>
-                        <div className="text-sm font-bold text-slate-900">{ongoingTrip.dates}</div>
-                      </div>
-                    </div>
+                      <p className="text-slate-500 mb-6 line-clamp-2">Enjoying the adventure in {trip.destination}!</p>
 
-                    <div className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                      <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                        <MapPin size={18} />
-                      </div>
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Location</div>
-                        <div className="text-sm font-bold text-slate-900">{ongoingTrip.location}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
-                      <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
-                        <Users size={18} />
-                      </div>
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Travelers</div>
-                        <div className="text-sm font-bold text-slate-900">{ongoingTrip.travelers}</div>
+                      <div className="flex flex-wrap gap-6 mb-8">
+                        <div className="flex items-center gap-2 text-slate-600 font-medium">
+                          <Calendar size={18} className="text-blue-500" />
+                          <span>{new Date(trip.start_date).toLocaleDateString()} - {new Date(trip.end_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-slate-600 font-medium">
+                          <MapPin size={18} className="text-blue-500" />
+                          <span>{trip.destination}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                <div className="mt-8 flex justify-end">
-                  <button className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
-                    View Itinerary Details
-                    <ArrowRight size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* UPCOMING SECTION */}
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1.5 h-8 bg-amber-500 rounded-full"></div>
-              <h2 className="text-xl font-bold text-slate-900">Up-coming</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Trip Card 1 */}
-              <div className="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm flex flex-col group hover:shadow-lg transition-all">
-                <div className="h-48 relative overflow-hidden">
-                  <img src={upcomingTrips[0].image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt="" />
-                  <div className="absolute top-4 left-4">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur-md text-slate-800 text-xs font-bold rounded-lg shadow-sm">
-                      {upcomingTrips[0].daysLeft} Days Left
-                    </span>
-                  </div>
-                  <div className="absolute top-4 right-4 text-white hover:bg-white/20 p-1 rounded-full cursor-pointer transition-colors">
-                    <MoreVertical size={20} />
-                  </div>
-                </div>
-                <div className="p-6 flex-1 flex flex-col">
-                  <div className="mb-4">
-                    <h3 className="text-lg font-extrabold text-slate-900 mb-1">{upcomingTrips[0].title}</h3>
-                    <p className="text-sm text-slate-500 line-clamp-2">{upcomingTrips[0].description}</p>
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Dates</span>
-                      <span className="font-bold text-slate-700">{upcomingTrips[0].dates}</span>
+                    <div className="flex justify-between items-center pt-6 border-t border-slate-100">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-400 uppercase">Budget Used</span>
+                        <div className="flex items-end gap-1">
+                          <span className="text-xl font-black text-slate-900">$0</span> {/* Placeholder for now */}
+                          <span className="text-sm font-bold text-slate-400 mb-0.5">/ ${trip.budget}</span>
+                        </div>
+                      </div>
+                      <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors" onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/itinerary/${trip.id}`);
+                      }}>
+                        <span>View Itinerary</span>
+                        <ArrowRight size={16} />
+                      </button>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Destinations</span>
-                      <span className="font-bold text-slate-700">{upcomingTrips[0].destinations}</span>
-                    </div>
-                  </div>
-
-                  <div className="mt-auto grid grid-cols-2 gap-3">
-                    <button className="py-2.5 bg-slate-50 text-slate-600 font-bold rounded-xl hover:bg-slate-100 transition-colors">Edit</button>
-                    <button className="py-2.5 bg-blue-50 text-blue-600 font-bold rounded-xl hover:bg-blue-100 transition-colors">View</button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Draft Card */}
-              <div className="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm flex flex-col group hover:shadow-lg transition-all relative">
-                <div className="absolute top-4 right-4 text-slate-300 hover:text-slate-500 cursor-pointer z-10">
-                  <MoreVertical size={20} />
-                </div>
-                <div className="flex-1 flex items-center justify-center bg-slate-50/50 p-8 min-h-[200px]">
-                  <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center text-slate-300">
-                    <MapPin size={32} />
-                  </div>
-                </div>
-
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider rounded">Draft</span>
-                  </div>
-                  <h3 className="text-lg font-extrabold text-slate-900 mb-1">{upcomingTrips[1].title}</h3>
-                  <p className="text-sm text-slate-500 mb-6">{upcomingTrips[1].description}</p>
-
-                  <div className="space-y-3 mb-6">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Dates</span>
-                      <span className="font-bold text-slate-700 italic">{upcomingTrips[1].dates}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-bold text-slate-400 text-[10px] uppercase tracking-wider">Destinations</span>
-                      <span className="font-bold text-slate-700">{upcomingTrips[1].destinations}</span>
-                    </div>
-                  </div>
-
-                  <button className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200">
-                    Continue Planning
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* COMPLETED SECTION */}
-          <section>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1.5 h-8 bg-slate-400 rounded-full"></div>
-              <h2 className="text-xl font-bold text-slate-900">Completed</h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {completedTrips.map(trip => (
-                <div key={trip.id} className="bg-white rounded-[24px] overflow-hidden border border-slate-100 shadow-sm group hover:shadow-lg transition-all">
-                  <div className="h-40 overflow-hidden relative">
-                    <img src={trip.image} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={trip.title} />
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-bold text-slate-900 mb-1">{trip.title}</h3>
-                    <div className="text-xs font-bold text-slate-400 mb-4">{trip.date}</div>
-
-                    <div className="flex items-center gap-2 mb-4 text-slate-500 text-sm font-medium">
-                      <MapPin size={14} className="text-blue-500" />
-                      {trip.location}
-                    </div>
-
-                    <a href="#" className="flex items-center gap-1 text-blue-600 text-xs font-bold hover:gap-2 transition-all">
-                      View Memories
-                      <ArrowRight size={12} />
-                    </a>
                   </div>
                 </div>
               ))}
-            </div>
-          </section>
+            </section>
+          )}
+
+          {/* UPCOMING SECTION */}
+          {(upcomingTrips.length > 0 || (ongoingTrips.length === 0 && completedTrips.length === 0)) && (
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1.5 h-8 bg-purple-600 rounded-full"></div>
+                <h2 className="text-xl font-bold text-slate-900">Upcoming Adventures</h2>
+              </div>
+
+              {upcomingTrips.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {upcomingTrips.map((trip) => (
+                    <div key={trip.id} className="bg-white p-6 rounded-[28px] border border-slate-100 shadow-sm group hover:shadow-md transition-all cursor-pointer" onClick={() => navigate(`/itinerary/${trip.id}`)}>
+                      <div className="flex justify-between items-start mb-6">
+                        <div className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-md">
+                          <img src={trip.image_url || "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop"} alt={trip.name} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold uppercase tracking-wider rounded-lg">
+                          {Math.ceil((new Date(trip.start_date) - new Date()) / (1000 * 60 * 60 * 24))} days left
+                        </div>
+                      </div>
+
+                      <h3 className="text-xl font-bold text-slate-900 mb-2 truncate">{trip.name}</h3>
+                      <p className="text-slate-500 text-sm mb-6 line-clamp-2">Trip to {trip.destination}</p>
+
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-center gap-3 text-slate-600 text-sm font-medium">
+                          <Calendar size={16} className="text-purple-500" />
+                          <span>{new Date(trip.start_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-slate-600 text-sm font-medium">
+                          <MapPin size={16} className="text-purple-500" />
+                          <span>{trip.destination}</span>
+                        </div>
+                      </div>
+
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-slate-200 w-0"></div>
+                      </div>
+                      <div className="flex justify-between items-center mt-2">
+                        <span className="text-xs font-bold text-slate-400">0% Planned</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+                  <p className="text-slate-500 font-bold">No upcoming trips. Time to plan one!</p>
+                </div>
+              )}
+            </section>
+          )}
+
+          {/* COMPLETED SECTION */}
+          {completedTrips.length > 0 && (
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1.5 h-8 bg-green-600 rounded-full"></div>
+                <h2 className="text-xl font-bold text-slate-900">Completed</h2>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedTrips.map(trip => (
+                  <div key={trip.id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm opacity-80 hover:opacity-100 transition-all cursor-pointer" onClick={() => navigate(`/itinerary/${trip.id}`)}>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400">
+                        <CheckCircle size={20} />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-slate-900">{trip.name}</h4>
+                        <span className="text-xs text-slate-500 font-bold">{new Date(trip.end_date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
         </div>
       </div>
     </Layout>
