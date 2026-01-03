@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Globe, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Globe, ArrowRight, Camera } from 'lucide-react';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,14 +17,30 @@ const Login = () => {
       <div className="w-full lg:w-[480px] xl:w-[560px] flex flex-col justify-center px-8 sm:px-12 lg:px-20 py-12 bg-white relative z-10 shadow-2xl shadow-slate-200">
         <div className="max-w-md mx-auto w-full">
           {/* Brand */}
-          <div className="flex items-center gap-3 mb-12">
+          <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
               <Globe size={24} />
             </div>
             <span className="text-xl font-bold text-slate-900 tracking-tight">GlobeTrotter</span>
           </div>
 
-          <div className="mb-10">
+          {/* Profile Photo Upload */}
+          <div className="flex justify-center mb-8">
+            <div className="relative group">
+              <div className="w-24 h-24 rounded-full bg-slate-100 border-4 border-white shadow-lg flex items-center justify-center overflow-hidden">
+                <img
+                  src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=687&auto=format&fit=crop"
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <button className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-blue-700 transition-colors border-2 border-white">
+                <Camera size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div className="mb-10 text-center">
             <h1 className="text-4xl font-extrabold text-slate-900 mb-3 tracking-tight">Welcome back</h1>
             <p className="text-slate-500 text-lg font-medium">Please enter your details to sign in.</p>
           </div>

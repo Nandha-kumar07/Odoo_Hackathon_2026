@@ -39,26 +39,52 @@ const AdminPanel = () => {
           <div className="lg:col-span-2 bg-white p-6 rounded-[24px] border border-slate-100 shadow-sm">
             <div className="flex justify-between items-center mb-8">
               <h3 className="font-bold text-slate-900 text-lg">User Growth & Trips</h3>
-              <select className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg px-3 py-1.5 outline-none">
+              <select className="bg-slate-50 border border-slate-200 text-slate-600 text-xs font-bold rounded-lg px-3 py-1.5 outline-none cursor-pointer">
                 <option>Last 30 Days</option>
                 <option>Last 6 Months</option>
                 <option>Last Year</option>
               </select>
             </div>
 
-            {/* CSS-only Mock Chart */}
-            <div className="h-64 flex items-end justify-between gap-2 px-2">
+            {/* Line Chart */}
+            <div className="h-64 flex items-end justify-between gap-2 px-2 mb-4">
               {[40, 65, 45, 80, 55, 90, 70, 85, 60, 75, 50, 95].map((h, i) => (
-                <div key={i} className="w-full bg-blue-50 rounded-t-lg relative group">
-                  <div
-                    className="absolute bottom-0 inset-x-0 bg-blue-500 rounded-t-lg transition-all duration-1000 group-hover:bg-blue-600"
+                <div key={i} className="w-full flex flex-col items-center gap-2 group">
+                  <div className="w-full bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg relative transition-all duration-300 hover:from-blue-600 hover:to-blue-500 cursor-pointer"
                     style={{ height: `${h}%` }}
-                  ></div>
+                  >
+                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white px-2 py-1 rounded text-xs font-bold whitespace-nowrap">
+                      {Math.floor(h * 50)} users
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <div className="flex justify-between mt-4 text-xs font-bold text-slate-400 uppercase tracking-wider px-2">
               <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+            </div>
+
+            {/* Monthly Stats Bar Chart */}
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <h4 className="font-bold text-slate-900 mb-4">Monthly Activity</h4>
+              <div className="space-y-3">
+                {[
+                  { month: 'January', value: 85, color: 'bg-blue-500' },
+                  { month: 'February', value: 65, color: 'bg-purple-500' },
+                  { month: 'March', value: 92, color: 'bg-amber-500' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-xs font-bold text-slate-600 w-20">{item.month}</span>
+                    <div className="flex-1 h-8 bg-slate-100 rounded-lg overflow-hidden">
+                      <div className={`h-full ${item.color} rounded-lg transition-all duration-500 flex items-center justify-end pr-3`}
+                        style={{ width: `${item.value}%` }}
+                      >
+                        <span className="text-white text-xs font-bold">{item.value}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 

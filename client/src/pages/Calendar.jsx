@@ -48,25 +48,43 @@ const Calendar = () => {
             {days.map((day, index) => {
               const isCurrentMonth = index >= 2 && index <= 32; // Mocking correct dates
               const dayEvents = events.filter(e => e.day === day);
+              const isToday = day === 16; // Mock today
 
               return (
                 <div
                   key={index}
-                  className={`border-b border-r border-slate-100 p-3 relative group transition-colors hover:bg-slate-50 ${!isCurrentMonth ? 'bg-slate-50/30' : ''}`}
+                  className={`border-b border-r border-slate-100 p-3 relative group transition-colors hover:bg-blue-50/30 ${!isCurrentMonth ? 'bg-slate-50/30' : ''} ${isToday ? 'bg-blue-50/50' : ''}`}
                 >
-                  <span className={`text-sm font-bold ${!isCurrentMonth ? 'text-slate-300' : 'text-slate-700'}`}>
-                    {day > 31 ? day - 31 : day <= 0 ? 30 + day : day}
-                  </span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className={`text-sm font-bold ${!isCurrentMonth ? 'text-slate-300' : isToday ? 'text-blue-600' : 'text-slate-700'}`}>
+                      {day > 31 ? day - 31 : day <= 0 ? 30 + day : day}
+                    </span>
+                    {dayEvents.length > 0 && (
+                      <span className="w-5 h-5 bg-blue-600 text-white rounded-full flex items-center justify-center text-[10px] font-bold">
+                        {dayEvents.length}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="mt-2 space-y-1.5">
-                    {dayEvents.map((evt, i) => (
+                    {dayEvents.slice(0, 2).map((evt, i) => (
                       <div
                         key={i}
-                        className={`text-[10px] font-bold px-2 py-1 rounded-md border truncate cursor-pointer hover:opacity-80 transition-opacity ${evt.color}`}
+                        className={`text-[10px] font-bold px-2 py-1.5 rounded-md border truncate cursor-pointer hover:opacity-80 transition-opacity ${evt.color} relative group/event`}
+                        title={evt.title}
                       >
                         {evt.title}
+                        {/* Tooltip on hover */}
+                        <div className="absolute left-0 top-full mt-1 hidden group-hover/event:block z-50 bg-slate-900 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap shadow-xl">
+                          {evt.title}
+                        </div>
                       </div>
                     ))}
+                    {dayEvents.length > 2 && (
+                      <div className="text-[10px] text-slate-500 font-bold px-2">
+                        +{dayEvents.length - 2} more
+                      </div>
+                    )}
                   </div>
 
                   {isCurrentMonth && (

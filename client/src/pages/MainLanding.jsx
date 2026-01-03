@@ -57,6 +57,20 @@ const MainLanding = () => {
           </div>
         </header>
 
+        {/* Hero Banner */}
+        <div className="relative h-64 rounded-[32px] overflow-hidden mb-12 shadow-xl">
+          <img
+            src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?q=80&w=2035&auto=format&fit=crop"
+            alt="Travel Banner"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-900/50 to-transparent"></div>
+          <div className="absolute inset-0 flex flex-col justify-center px-12">
+            <h2 className="text-5xl font-extrabold text-white mb-4 tracking-tight">Good morning, Alex</h2>
+            <p className="text-xl text-white/90 font-medium max-w-lg">Ready to explore the world? Your next adventure awaits.</p>
+          </div>
+        </div>
+
         {/* Hero Greeting */}
         <div className="flex justify-between items-end mb-10">
           <div>
@@ -146,6 +160,40 @@ const MainLanding = () => {
                       ))}
                     </div>
                   </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Previous Trips */}
+        <section className="mb-16">
+          <div className="flex justify-between items-center mb-8">
+            <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Previous Trips</h3>
+            <button className="text-blue-600 font-bold text-sm hover:underline">View All</button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { title: 'Iceland Adventure', date: 'Aug 2023', image: 'https://images.unsplash.com/photo-1504893524553-b855bce32c67?q=80&w=2000&auto=format&fit=crop', rating: 4.9 },
+              { title: 'Swiss Alps', date: 'Jun 2023', image: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?q=80&w=2000&auto=format&fit=crop', rating: 5.0 },
+              { title: 'Morocco Explorer', date: 'Mar 2023', image: 'https://images.unsplash.com/photo-1489749798305-4fea3ae63d43?q=80&w=2000&auto=format&fit=crop', rating: 4.8 },
+            ].map((trip, idx) => (
+              <div key={idx} className="bg-white rounded-[24px] overflow-hidden shadow-md hover:shadow-xl transition-all group cursor-pointer border border-slate-100">
+                <div className="h-48 relative overflow-hidden">
+                  <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={trip.title} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                  <div className="absolute top-4 right-4 px-3 py-1 bg-white/20 backdrop-blur-md rounded-lg border border-white/20 flex items-center gap-1">
+                    <Star size={14} fill="gold" className="text-yellow-400" />
+                    <span className="text-white text-xs font-bold">{trip.rating}</span>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h4 className="text-lg font-bold text-slate-900 mb-1">{trip.title}</h4>
+                  <p className="text-slate-500 text-sm font-medium mb-4">{trip.date}</p>
+                  <button className="w-full py-2.5 bg-slate-50 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-100 transition-colors">
+                    View Memories
+                  </button>
                 </div>
               </div>
             ))}
