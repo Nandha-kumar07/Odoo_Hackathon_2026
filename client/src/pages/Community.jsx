@@ -1,38 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Layout from '../components/Layout';
-import { Search, Plus, Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, MapPin, BadgeCheck, Plane } from 'lucide-react';
+import { Search, Plus, Heart, MessageCircle, Share2, MoreHorizontal, Bookmark, MapPin, BadgeCheck, Plane, X, Image as ImageIcon, Loader } from 'lucide-react';
 
 const Community = () => {
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newPost, setNewPost] = useState({ title: '', content: '', tags: '', image_url: '' });
+  const [submitting, setSubmitting] = useState(false);
+
   // Mock Styles for active filter
   const activeFilterStyle = "bg-slate-900 text-white";
   const inactiveFilterStyle = "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50";
 
-  const posts = [
-    {
-      id: 1,
-      author: "Sarah Jenkins",
-      avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=687&auto=format&fit=crop",
-      time: "2 hours ago • Italy",
-      title: "Hidden Gems of the Amalfi Coast",
-      content: "Spent 7 days exploring the less crowded villages of Amalfi. Found an incredible lemon grove tour in Minori that I can't recommend enough! 🍋🇮🇹",
-      tags: ["#Italy", "#Summer", "#HiddenGems"],
-      image: "https://images.unsplash.com/photo-1533105070520-1e8b1d436154?q=80&w=2070&auto=format&fit=crop",
-      likes: 245,
-      comments: 32
-    },
-    {
-      id: 2,
-      author: "Mark Thompson",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=687&auto=format&fit=crop",
-      time: "5 hours ago • Japan",
-      title: "Backpacking Japan on a Budget 💴",
-      content: "Japan doesn't have to be expensive! Here's how I managed 2 weeks including Tokyo, Kyoto, and Osaka for under $1500 including flights. 🚅🍱",
-      tags: ["#Japan", "#BudgetTravel", "#Backpacking"],
-      image: "https://images.unsplash.com/photo-1542051841857-5f906991dd88?q=80&w=2071&auto=format&fit=crop",
-      likes: 512,
-      comments: 89
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/posts');
+      setPosts(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setLoading(false);
     }
-  ];
+  };
+
+  const handleCreatePost = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      // Mock user ID for now as per plan
+      const postData = {
+        ...newPost,
+        user_id: 1, // Using the sample user "Alex Rivera"
+        tags: newPost.tags.split(',').map(tag => tag.trim()).filter(tag => tag)
+      };
+
+      await axios.post('http://localhost:5000/api/posts', postData);
+      setIsModalOpen(false);
+      setNewPost({ title: '', content: '', tags: '', image_url: '' });
+      fetchPosts(); // Refresh list
+    } catch (error) {
+      console.error("Error creating post:", error);
+      alert("Failed to create post");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const trendingDestinations = [
     { name: "Kyoto, Japan", posts: "12k posts this week", image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=200&auto=format&fit=crop" },
@@ -47,7 +65,7 @@ const Community = () => {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto pb-12">
+      <div className="max-w-7xl mx-auto pb-12 relative">
 
         {/* Header */}
         <div className="flex justify-between items-end mb-8">
@@ -55,7 +73,10 @@ const Community = () => {
             <h1 className="text-4xl font-extrabold text-slate-900 mb-2 tracking-tight">Community</h1>
             <p className="text-slate-500 font-medium">Explore itineraries and travel tips from fellow travelers.</p>
           </div>
-          <button className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all flex items-center gap-2"
+          >
             <Plus size={20} strokeWidth={3} />
             Create Post
           </button>
@@ -85,59 +106,71 @@ const Community = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Feed */}
           <div className="lg:col-span-2 space-y-8">
-            {posts.map(post => (
-              <div key={post.id} className="bg-white p-6 md:p-8 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-                {/* Post Header */}
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-4">
-                    <img src={post.avatar} alt={post.author} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
-                    <div>
-                      <h3 className="font-bold text-slate-900">{post.author}</h3>
-                      <p className="text-xs font-bold text-slate-400">{post.time}</p>
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <Loader className="animate-spin text-blue-600" size={40} />
+              </div>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-20 text-slate-500 font-medium">
+                No posts yet. Be the first to share your journey!
+              </div>
+            ) : (
+              posts.map(post => (
+                <div key={post.id} className="bg-white p-6 md:p-8 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                  {/* Post Header */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex items-center gap-4">
+                      <img src={post.avatar || "https://via.placeholder.com/150"} alt={post.author} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm" />
+                      <div>
+                        <h3 className="font-bold text-slate-900">{post.author}</h3>
+                        <p className="text-xs font-bold text-slate-400">{post.time}</p>
+                      </div>
+                    </div>
+                    <button className="text-slate-300 hover:text-slate-500 transition-colors">
+                      <MoreHorizontal size={24} />
+                    </button>
+                  </div>
+
+                  {/* Post Content */}
+                  <div className="mb-4">
+                    <h2 className="text-xl font-bold text-slate-900 mb-2">{post.title}</h2>
+                    <p className="text-slate-600 font-medium leading-relaxed mb-4">{post.content}</p>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {post.tags && post.tags.map((tag, i) => (
+                        <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg">{tag.startsWith('#') ? tag : `#${tag}`}</span>
+                      ))}
                     </div>
                   </div>
-                  <button className="text-slate-300 hover:text-slate-500 transition-colors">
-                    <MoreHorizontal size={24} />
-                  </button>
-                </div>
 
-                {/* Post Content */}
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold text-slate-900 mb-2">{post.title}</h2>
-                  <p className="text-slate-600 font-medium leading-relaxed mb-4">{post.content}</p>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {post.tags.map((tag, i) => (
-                      <span key={i} className="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-lg">{tag}</span>
-                    ))}
-                  </div>
-                </div>
+                  {/* Post Image */}
+                  {post.image && (
+                    <div className="rounded-2xl overflow-hidden mb-6 h-[300px] md:h-[400px] relative">
+                      <img src={post.image} alt="Post content" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                    </div>
+                  )}
 
-                {/* Post Image */}
-                <div className="rounded-2xl overflow-hidden mb-6 h-[300px] md:h-[400px] relative">
-                  <img src={post.image} alt="Post content" className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center justify-between border-t border-slate-100 pt-4">
-                  <div className="flex items-center gap-6">
-                    <button className="flex items-center gap-2 text-slate-500 hover:text-red-500 font-bold text-sm transition-colors group">
-                      <Heart size={20} className="group-hover:fill-current" />
-                      {post.likes}
-                    </button>
-                    <button className="flex items-center gap-2 text-slate-500 hover:text-blue-500 font-bold text-sm transition-colors">
-                      <MessageCircle size={20} />
-                      {post.comments}
-                    </button>
-                    <button className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-sm transition-colors">
-                      <Share2 size={20} />
+                  {/* Actions */}
+                  <div className="flex items-center justify-between border-t border-slate-100 pt-4">
+                    <div className="flex items-center gap-6">
+                      <button className="flex items-center gap-2 text-slate-500 hover:text-red-500 font-bold text-sm transition-colors group">
+                        <Heart size={20} className="group-hover:fill-current" />
+                        {post.likes}
+                      </button>
+                      <button className="flex items-center gap-2 text-slate-500 hover:text-blue-500 font-bold text-sm transition-colors">
+                        <MessageCircle size={20} />
+                        {post.comments}
+                      </button>
+                      <button className="flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-sm transition-colors">
+                        <Share2 size={20} />
+                      </button>
+                    </div>
+                    <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                      <Bookmark size={20} />
                     </button>
                   </div>
-                  <button className="text-slate-400 hover:text-slate-600 transition-colors">
-                    <Bookmark size={20} />
-                  </button>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
 
           {/* Right Sidebar */}
@@ -202,6 +235,85 @@ const Community = () => {
           </div>
 
         </div>
+
+        {/* Create Post Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-[24px] w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-300">
+              <div className="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h2 className="text-xl font-bold text-slate-900">Create New Post</h2>
+                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+              <form onSubmit={handleCreatePost} className="p-6 space-y-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={newPost.title}
+                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
+                    placeholder="Give your trip a catchy title..."
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Content</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={newPost.content}
+                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                    placeholder="Share your experience..."
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-medium resize-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Image URL</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      value={newPost.image_url}
+                      onChange={(e) => setNewPost({ ...newPost, image_url: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-medium"
+                    />
+                    <div className="p-3 bg-slate-100 text-slate-400 rounded-xl"><ImageIcon size={24} /></div>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">Tags (comma separated)</label>
+                  <input
+                    type="text"
+                    value={newPost.tags}
+                    onChange={(e) => setNewPost({ ...newPost, tags: e.target.value })}
+                    placeholder="#travel #summer"
+                    className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 font-medium"
+                  />
+                </div>
+                <div className="pt-4 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-6 py-3 text-slate-600 font-bold hover:bg-slate-50 rounded-xl transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {submitting ? <Loader className="animate-spin" size={20} /> : <Plus size={20} strokeWidth={3} />}
+                    Publish Post
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </div>
     </Layout>
   );

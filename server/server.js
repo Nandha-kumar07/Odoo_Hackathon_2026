@@ -27,6 +27,7 @@ app.use("/api", require("./routes/itinerary")); // Note: itinerary route handles
 app.use("/api/expenses", require("./routes/expenses"));
 app.use("/api/search", require("./routes/search"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api/posts", require("./routes/posts"));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
