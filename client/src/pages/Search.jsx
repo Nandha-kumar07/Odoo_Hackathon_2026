@@ -215,7 +215,7 @@ const Search = () => {
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 block">Price Range</label>
                 <div className="flex gap-2">
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
                     <input
                       type="number"
                       placeholder="Min"
@@ -225,7 +225,7 @@ const Search = () => {
                     />
                   </div>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">$</span>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">₹</span>
                     <input
                       type="number"
                       placeholder="Max"
@@ -289,7 +289,7 @@ const Search = () => {
                         <div className="flex items-end justify-between">
                           <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">From</p>
-                            <p className="text-2xl font-black text-slate-900">${item.price}</p>
+                            <p className="text-2xl font-black text-slate-900">₹{item.price}</p>
                           </div>
                           <button
                             onClick={() => handleAddActivity(item)}

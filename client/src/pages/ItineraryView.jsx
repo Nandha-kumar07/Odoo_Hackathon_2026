@@ -6,7 +6,7 @@ import { tripService } from '../services/trips';
 import { activityService } from '../services/activities';
 import {
   Share2, Calendar, MapPin, PersonStanding,
-  ChevronRight, Banknote, Plus, Link, Check
+  ChevronRight, IndianRupee, Plus, Link, Check
 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 
@@ -219,7 +219,7 @@ const ItineraryView = () => {
 
               <div className="mb-2 flex justify-between text-sm font-medium">
                 <span className="text-slate-500">Spent</span>
-                <span className="text-slate-900 font-extrabold">$130 / ${trip.budget}</span>
+                <span className="text-slate-900 font-extrabold">₹130 / ₹{trip.budget}</span>
               </div>
               <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden mb-6">
                 <div className="h-full bg-green-500 rounded-full" style={{ width: '26%' }}></div>
@@ -233,11 +233,11 @@ const ItineraryView = () => {
                 <div className="flex items-center justify-between group">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-green-50 text-green-600 flex items-center justify-center">
-                      <Banknote size={20} />
+                      <IndianRupee size={20} />
                     </div>
                     <span className="font-medium text-slate-600">Total Budget</span>
                   </div>
-                  <span className="font-extrabold text-slate-900">${trip.budget}</span>
+                  <span className="font-extrabold text-slate-900">₹{trip.budget}</span>
                 </div>
               </div>
             </div>

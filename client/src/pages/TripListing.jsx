@@ -122,8 +122,8 @@ const TripListing = () => {
                       <div className="flex flex-col">
                         <span className="text-xs font-bold text-slate-400 uppercase">Budget Used</span>
                         <div className="flex items-end gap-1">
-                          <span className="text-xl font-black text-slate-900">$0</span> {/* Placeholder for now */}
-                          <span className="text-sm font-bold text-slate-400 mb-0.5">/ ${trip.budget}</span>
+                          <span className="text-xl font-black text-slate-900">₹0</span> {/* Placeholder for now */}
+                          <span className="text-sm font-bold text-slate-400 mb-0.5">/ ₹{trip.budget}</span>
                         </div>
                       </div>
                       <button className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-colors" onClick={(e) => {

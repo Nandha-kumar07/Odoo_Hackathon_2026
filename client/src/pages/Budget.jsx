@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
-import { DollarSign, TrendingUp, TrendingDown, Plane, Home, Utensils, Activity, Wallet, ChevronDown } from 'lucide-react';
+import { IndianRupee, TrendingUp, TrendingDown, Plane, Home, Utensils, Activity, Wallet, ChevronDown } from 'lucide-react';
 import { tripService } from '../services/trips';
 import { expenseService } from '../services/expenses';
 
@@ -61,14 +61,14 @@ const Budget = () => {
         'Accommodation': { icon: <Home size={20} />, color: 'purple' },
         'Food': { icon: <Utensils size={20} />, color: 'amber' },
         'Activities': { icon: <Activity size={20} />, color: 'green' },
-        'Other': { icon: <DollarSign size={20} />, color: 'gray' }
+        'Other': { icon: <IndianRupee size={20} />, color: 'gray' }
     };
 
     const categories = Object.keys(categoriesMap).map(cat => ({
         name: cat,
         spent: categoriesMap[cat],
         budget: 0, // Individual category budgets not yet implemented in backend
-        icon: categoryConfig[cat]?.icon || <DollarSign size={20} />,
+        icon: categoryConfig[cat]?.icon || <IndianRupee size={20} />,
         color: categoryConfig[cat]?.color || 'gray'
     }));
 
@@ -126,7 +126,7 @@ const Budget = () => {
                                     </div>
                                     <div>
                                         <p className="text-blue-100 text-sm font-bold uppercase tracking-wider">Total Budget</p>
-                                        <h2 className="text-4xl font-black">${totalBudget.toLocaleString()}</h2>
+                                        <h2 className="text-4xl font-black">₹{totalBudget.toLocaleString()}</h2>
                                     </div>
                                 </div>
 
@@ -136,14 +136,14 @@ const Budget = () => {
                                             <TrendingDown size={16} />
                                             <span className="text-xs font-bold uppercase tracking-wider">Spent</span>
                                         </div>
-                                        <p className="text-2xl font-black">${spent.toLocaleString()}</p>
+                                        <p className="text-2xl font-black">₹{spent.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20">
                                         <div className="flex items-center gap-2 mb-2">
                                             <TrendingUp size={16} />
                                             <span className="text-xs font-bold uppercase tracking-wider">Remaining</span>
                                         </div>
-                                        <p className="text-2xl font-black">${remaining.toLocaleString()}</p>
+                                        <p className="text-2xl font-black">₹{remaining.toLocaleString()}</p>
                                     </div>
                                 </div>
 
@@ -179,7 +179,7 @@ const Budget = () => {
                                                             </div>
                                                             <div>
                                                                 <p className="font-bold text-slate-900">{cat.name}</p>
-                                                                <p className="text-xs text-slate-500 font-medium">${cat.spent} spent</p>
+                                                                <p className="text-xs text-slate-500 font-medium">₹{cat.spent} spent</p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -215,7 +215,7 @@ const Budget = () => {
                                             strokeDasharray={`${(400 / 4200) * 251.2} 251.2`} strokeDashoffset={`-${((1200 + 1800 + 800) / 4200) * 251.2}`} />
                                     </svg>
                                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                        <p className="text-2xl font-black text-slate-900">${spent}</p>
+                                        <p className="text-2xl font-black text-slate-900">₹{spent}</p>
                                         <p className="text-xs text-slate-500 font-bold">Total Spent</p>
                                     </div>
                                 </div>
@@ -230,7 +230,7 @@ const Budget = () => {
                                                     <div className={`w-3 h-3 ${colors.bg} rounded-full`}></div>
                                                     <span className="text-sm font-medium text-slate-600">{cat.name}</span>
                                                 </div>
-                                                <span className="text-sm font-bold text-slate-900">${cat.spent}</span>
+                                                <span className="text-sm font-bold text-slate-900">₹{cat.spent}</span>
                                             </div>
                                         );
                                     })}
@@ -240,7 +240,7 @@ const Budget = () => {
                             {/* Daily Budget Recommendation */}
                             <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-[24px] p-6 border border-amber-200">
                                 <h4 className="text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">Daily Recommendation</h4>
-                                <p className="text-3xl font-black text-amber-900 mb-2">$120</p>
+                                <p className="text-3xl font-black text-amber-900 mb-2">₹120</p>
                                 <p className="text-sm text-amber-700 font-medium">Based on remaining budget for 35 days</p>
                             </div>
                         </div>
