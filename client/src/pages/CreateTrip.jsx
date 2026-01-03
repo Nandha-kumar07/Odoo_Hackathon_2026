@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { Calendar, MapPin, ArrowRight, Sparkles, Plus } from 'lucide-react';
+import { Calendar, MapPin, Sparkles, Plus, Image as ImageIcon } from 'lucide-react';
 
 const CreateTrip = () => {
   const navigate = useNavigate();
   const [selectedDest, setSelectedDest] = useState(null);
+  const [tripName, setTripName] = useState('');
 
   const suggestions = [
     { id: 1, name: 'Kyoto', country: 'Japan', image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?q=80&w=1000&auto=format&fit=crop' },
     { id: 2, name: 'Santorini', country: 'Greece', image: 'https://images.unsplash.com/photo-1613395877344-13d4a8e0d49e?q=80&w=1000&auto=format&fit=crop' },
-    { id: 3, name: 'Reykjavik', country: 'Iceland', image: 'https://images.unsplash.com/photo-1476610182048-b716b8518aae?q=80&w=1000&auto=format&fit=crop' },
-    { id: 4, name: 'Maui', country: 'Hawaii', image: 'https://images.unsplash.com/photo-1542259659-4ab2877c9175?q=80&w=1000&auto=format&fit=crop' },
-    { id: 5, name: 'Marrakech', country: 'Morocco', image: 'https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=1000&auto=format&fit=crop' },
-    { id: 6, name: 'Banff', country: 'Canada', image: 'https://images.unsplash.com/photo-1561134643-6d0eb1c850eb?q=80&w=1000&auto=format&fit=crop' },
+    { id: 3, name: 'Maui', country: 'Hawaii', image: 'https://images.unsplash.com/photo-1542259659-4ab2877c9175?q=80&w=1000&auto=format&fit=crop' },
+    { id: 4, name: 'Marrakech', country: 'Morocco', image: 'https://images.unsplash.com/photo-1597212618440-806262de4f6b?q=80&w=1000&auto=format&fit=crop' },
+    { id: 5, name: 'Banff', country: 'Canada', image: 'https://images.unsplash.com/photo-1561134643-6d0eb1c850eb?q=80&w=1000&auto=format&fit=crop' },
+    { id: 6, name: 'New York', country: 'USA', image: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?q=80&w=1170&auto=format&fit=crop' },
   ];
 
   const handleContinue = (e) => {
@@ -23,115 +24,123 @@ const CreateTrip = () => {
 
   return (
     <Layout>
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto pb-24">
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-900">Plan a New Trip</h1>
-          <p className="text-slate-500 font-medium">Start your journey by selecting a destination and dates.</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 mb-2">Plan a new trip</h1>
+          <p className="text-slate-500 font-medium">Start by adding the details for your next journey.</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Form Section */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-xl shadow-blue-900/5 sticky top-24">
-              <form onSubmit={handleContinue} className="space-y-6">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Trip Name</label>
+        <form onSubmit={handleContinue} className="space-y-6">
+          {/* Card 1: Form Details */}
+          <div className="bg-white p-8 rounded-[24px] border border-slate-100 shadow-sm">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-slate-900">Trip Name</label>
+                <input
+                  type="text"
+                  value={tripName}
+                  onChange={(e) => setTripName(e.target.value)}
+                  placeholder="e.g., Summer in Kyoto"
+                  className="w-full h-14 px-5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-bold text-slate-900">Select a Place</label>
+                <div className="relative">
+                  <MapPin size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
                     type="text"
-                    placeholder="e.g. Summer Vacation 2024"
-                    className="w-full h-12 px-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-slate-900"
+                    placeholder="Where are you going?"
+                    value={selectedDest ? selectedDest.name : ''}
+                    onChange={() => { }}
+                    className="w-full h-14 pl-12 pr-5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
                     required
                   />
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Destination</label>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-slate-900">Start Date</label>
                   <div className="relative">
-                    <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
-                      placeholder="Where to?"
-                      value={selectedDest ? `${selectedDest.name}, ${selectedDest.country}` : ''}
-                      onChange={() => { }} // Controlled by selection below for demo
-                      className="w-full h-12 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-slate-900"
+                      placeholder="mm/dd/yyyy"
+                      onFocus={(e) => e.target.type = 'date'}
+                      onBlur={(e) => e.target.type = 'text'}
+                      className="w-full h-14 px-5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
                       required
                     />
+                    <Calendar size={20} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Start Date</label>
-                    <div className="relative">
-                      <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="date"
-                        className="w-full h-12 pl-11 pr-2 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-slate-900 text-sm"
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">End Date</label>
-                    <div className="relative">
-                      <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="date"
-                        className="w-full h-12 pl-11 pr-2 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:border-blue-500 focus:bg-white transition-all font-medium text-slate-900 text-sm"
-                        required
-                      />
-                    </div>
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-slate-900">End Date</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="mm/dd/yyyy"
+                      onFocus={(e) => e.target.type = 'date'}
+                      onBlur={(e) => e.target.type = 'text'}
+                      className="w-full h-14 px-5 bg-white border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                      required
+                    />
+                    <Calendar size={20} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
-
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="w-full h-14 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
-                  >
-                    Start Planning
-                    <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                  </button>
-                </div>
-              </form>
+              </div>
             </div>
           </div>
 
-          {/* Suggestions Grid */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center gap-2 mb-6">
-              <Sparkles size={20} className="text-amber-500" />
-              <h2 className="text-lg font-bold text-slate-900">Popular Destinations</h2>
-            </div>
+          {/* Card 2: Suggestions */}
+          <div className="bg-white p-8 rounded-[24px] border border-slate-100 shadow-sm">
+            <label className="block text-lg font-bold text-slate-900 mb-6">Suggestion for Places to Visit/Activities to prefer</label>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {suggestions.map((place) => (
                 <div
                   key={place.id}
                   onClick={() => setSelectedDest(place)}
                   className={`
-                    relative group cursor-pointer rounded-2xl overflow-hidden aspect-[3/4] transition-all duration-300
-                    ${selectedDest?.id === place.id ? 'ring-4 ring-blue-500 ring-offset-2' : 'hover:shadow-xl'}
-                  `}
+                                        group cursor-pointer rounded-2xl border-2 transition-all p-4 bg-slate-50 hover:bg-white hover:shadow-lg
+                                        ${selectedDest?.id === place.id ? 'border-blue-500 ring-4 ring-blue-500/10' : 'border-slate-100 hover:border-blue-200'}
+                                    `}
                 >
-                  <img src={place.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={place.name} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-90"></div>
-
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30">
-                      <Plus size={24} />
+                  <div className="aspect-[4/3] rounded-xl overflow-hidden bg-slate-200 mb-4 relative">
+                    {/* Mocking the 'skeleton' look from design if images fail, or just using images */}
+                    <img src={place.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={place.name} />
+                    <div className="absolute inset-0 flex items-center justify-center bg-slate-100/50 opacity-0 group-hover:opacity-0">
+                      <ImageIcon className="text-slate-300" size={32} />
                     </div>
                   </div>
-
-                  <div className="absolute bottom-4 left-4">
-                    <h3 className="text-white font-bold text-lg leading-none mb-1">{place.name}</h3>
-                    <p className="text-white/70 text-xs font-bold uppercase tracking-wider">{place.country}</p>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-slate-200 rounded w-3/4 group-hover:bg-slate-100 transition-colors"></div>
+                    <div className="h-3 bg-slate-200 rounded w-1/2 group-hover:bg-slate-100 transition-colors"></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+
+          {/* Footer Buttons */}
+          <div className="flex gap-4 pt-4">
+            <button
+              type="submit"
+              className="flex-1 h-14 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 hover:bg-blue-700 hover:shadow-blue-500/30 active:scale-[0.98] transition-all"
+            >
+              Create Trip
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/home')}
+              className="flex-1 h-14 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
     </Layout>
   );
